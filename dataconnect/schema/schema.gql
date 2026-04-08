@@ -1,0 +1,13 @@
+type User @table {
+  username: String!
+  displayName: String
+  createdAt: Timestamp!
+}
+
+type Run @table {
+  distance: Float!
+  runDate: Date!
+  notes: String
+  createdAt: Timestamp!
+  user: User!
+}

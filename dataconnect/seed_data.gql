@@ -1,0 +1,33 @@
+mutation SeedData @transaction @auth(level: USER, insecureReason: "Seed data operations are only accessible to authenticated users for initial database population.") {
+  user1: user_insert(data: {
+    username: "jimmybean",
+    displayName: "Jimmy Bean",
+    createdAt: "2023-01-01T12:00:00Z"
+  })
+  user2: user_insert(data: {
+    username: "runnergirl",
+    displayName: "Runner Girl",
+    createdAt: "2023-01-05T09:30:00Z"
+  })
+  run1: run_insert(data: {
+    userId_expr: "mutation.user1.id",
+    distance: 5.2,
+    runDate: "2023-01-02",
+    notes: "Morning run in the park.",
+    createdAt: "2023-01-02T08:00:00Z"
+  })
+  run2: run_insert(data: {
+    userId_expr: "mutation.user1.id",
+    distance: 10.0,
+    runDate: "2023-01-09",
+    notes: "Long run, feeling good!",
+    createdAt: "2023-01-09T07:45:00Z"
+  })
+  run3: run_insert(data: {
+    userId_expr: "mutation.user2.id",
+    distance: 3.5,
+    runDate: "2023-01-06",
+    notes: "Quick evening jog.",
+    createdAt: "2023-01-06T18:15:00Z"
+  })
+}

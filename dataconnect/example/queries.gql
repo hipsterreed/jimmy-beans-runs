@@ -1,0 +1,43 @@
+query ListUserRuns($userId: UUID!) @auth(level: USER, insecureReason: "This query fetches runs for a specific user ID, which is a common and safe public pattern.") {
+  runs(where: { userId: { eq: $userId } }) {
+    id
+    distance
+    runDate
+    notes
+    createdAt
+  }
+}
+
+query GetMyProfile @auth(level: USER) {
+  user(key: { id_expr: "auth.uid" }) {
+    id
+    username
+    displayName
+    createdAt
+    runs_on_user {
+      id
+      distance
+      runDate
+      createdAt
+    }
+  }
+}
+
+mutation CreateRun($distance: Float!, $runDate: Date!, $notes: String, $createdAt: Timestamp!) @auth(level: USER) {
+  run_insert(
+    data: {
+      distance: $distance,
+      runDate: $runDate,
+      notes: $notes,
+      userId_expr: "auth.uid",
+      createdAt: $createdAt
+    }
+  )
+}
+
+mutation UpdateMyDisplayName($newDisplayName: String!) @auth(level: USER) {
+  user_update(
+    key: { id_expr: "auth.uid" },
+    data: { displayName: $newDisplayName }
+  )
+}

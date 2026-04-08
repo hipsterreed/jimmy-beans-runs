@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Jimmy Bean Runs</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=VT323&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body>
+    <main class="app-shell">
+      <section class="hero-panel">
+        <p class="eyebrow">The April Quest</p>
+        <h1>Destroy the Ring in 60 Miles</h1>
+        <p class="hero-copy">
+          Hipster Sam and Frodo Bean are jogging from the Shire to Mount Doom.
+          Each of you is chasing 30 miles in April. Together, the fellowship
+          needs 60 miles to reach the fire. Every 5 miles unlocks a new mission.
+        </p>
+        <div id="syncBanner" class="sync-banner">
+          <p class="label">Sync Status</p>
+          <p id="syncMessage" class="supporting">Connecting to the fellowship ledger...</p>
+        </div>
+
+        <div class="quest-row">
+          <article class="quest-card total-card">
+            <p class="label">Fellowship Progress</p>
+            <p class="value"><span id="totalMiles">0.0</span> / 60 miles</p>
+            <div class="progress-track">
+              <div id="progressFill" class="progress-fill"></div>
+            </div>
+            <p id="progressText" class="supporting">
+              60.0 miles to Mount Doom
+            </p>
+          </article>
+
+          <article class="quest-card ring-card">
+            <p class="label">Ring Status</p>
+            <div class="ring-scene">
+              <div class="mountain"></div>
+              <div id="ringToken" class="ring-token"></div>
+            </div>
+            <p id="ringText" class="supporting">
+              The ring has barely left the Shire.
+            </p>
+          </article>
+        </div>
+      </section>
+
+      <section class="character-grid">
+        <article class="character-card sam-card">
+          <div class="character-header">
+            <div class="sprite sam-sprite" aria-hidden="true"></div>
+            <div>
+              <p class="label">Runner One</p>
+              <h2>Hipster Sam</h2>
+              <p class="supporting">
+                Suspender energy. Second breakfast after every run.
+              </p>
+            </div>
+          </div>
+
+          <div class="runner-stats">
+            <div>
+              <p class="label">Miles Logged</p>
+              <p class="runner-miles"><span id="samMiles">0.0</span> / 30</p>
+            </div>
+            <div>
+              <p class="label">Entries</p>
+              <p class="runner-miles" id="samEntries">0</p>
+            </div>
+          </div>
+
+          <form class="mile-form" data-runner="sam">
+            <label for="samInput">Add miles</label>
+            <div class="form-row">
+              <input
+                id="samInput"
+                name="miles"
+                type="number"
+                min="0.1"
+                step="0.1"
+                placeholder="3.1"
+                required
+              />
+              <button type="submit">Log Quest</button>
+            </div>
+          </form>
+
+          <ul id="samLog" class="run-log"></ul>
+        </article>
+
+        <article class="character-card frodo-card">
+          <div class="character-header">
+            <div class="sprite frodo-sprite" aria-hidden="true"></div>
+            <div>
+              <p class="label">Runner Two</p>
+              <h2>Frodo Bean</h2>
+              <p class="supporting">
+                Small stride. Huge burden. Elite ring-closing pace.
+              </p>
+            </div>
+          </div>
+
+          <div class="runner-stats">
+            <div>
+              <p class="label">Miles Logged</p>
+              <p class="runner-miles"><span id="frodoMiles">0.0</span> / 30</p>
+            </div>
+            <div>
+              <p class="label">Entries</p>
+              <p class="runner-miles" id="frodoEntries">0</p>
+            </div>
+          </div>
+
+          <form class="mile-form" data-runner="frodo">
+            <label for="frodoInput">Add miles</label>
+            <div class="form-row">
+              <input
+                id="frodoInput"
+                name="miles"
+                type="number"
+                min="0.1"
+                step="0.1"
+                placeholder="4.0"
+                required
+              />
+              <button type="submit">Log Quest</button>
+            </div>
+          </form>
+
+          <ul id="frodoLog" class="run-log"></ul>
+        </article>
+      </section>
+
+      <section class="mission-panel">
+        <div class="mission-header">
+          <div>
+            <p class="eyebrow">Quest Milestones</p>
+            <h2>Every 5 Fellowship Miles Unlocks a Mission</h2>
+          </div>
+          <button id="resetButton" class="reset-button" type="button">
+            Reset Quest
+          </button>
+        </div>
+        <div id="missions" class="mission-grid"></div>
+      </section>
+
+      <section id="setupPanel" class="setup-panel" hidden>
+        <p class="eyebrow">Firebase Setup</p>
+        <h2>Shared tracking needs your project keys</h2>
+        <p class="supporting">
+          Open <code>firebase-config.js</code>, paste in your Firebase web app
+          config, then reload this page from a local server or a hosted URL.
+        </p>
+      </section>
+    </main>
+
+    <template id="logItemTemplate">
+      <li class="log-item">
+        <span class="log-miles"></span>
+        <span class="log-date"></span>
+      </li>
+    </template>
+
+    <script type="module" src="./app.mjs"></script>
+  </body>
+</html>

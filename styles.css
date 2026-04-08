@@ -1,0 +1,383 @@
+:root {
+  --bg: #1f140d;
+  --panel: #302015;
+  --panel-alt: #452d1e;
+  --border: #120b07;
+  --gold: #f0c75e;
+  --gold-deep: #d8891d;
+  --grass: #5f9b43;
+  --moss: #8fc26f;
+  --ember: #ef6a38;
+  --cream: #f7e7bf;
+  --ink: #1a120d;
+  --shadow: 0 0 0 4px var(--border), 0 0 0 8px #6b492c;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  font-family: "VT323", monospace;
+  color: var(--cream);
+  background:
+    radial-gradient(circle at top, rgba(240, 199, 94, 0.2), transparent 30%),
+    linear-gradient(180deg, #3a271a 0%, #22160f 45%, #120c08 100%);
+  image-rendering: pixelated;
+}
+
+button,
+input {
+  font: inherit;
+}
+
+.app-shell {
+  width: min(1100px, calc(100% - 32px));
+  margin: 0 auto;
+  padding: 28px 0 48px;
+}
+
+.hero-panel,
+.character-card,
+.mission-panel,
+.quest-card {
+  background: var(--panel);
+  border: 4px solid var(--border);
+  box-shadow: var(--shadow);
+}
+
+.hero-panel,
+.mission-panel {
+  padding: 24px;
+}
+
+.eyebrow,
+.label {
+  margin: 0 0 8px;
+  color: var(--gold);
+  font-family: "Press Start 2P", cursive;
+  font-size: 0.7rem;
+  line-height: 1.7;
+  text-transform: uppercase;
+}
+
+h1,
+h2,
+.value,
+.runner-miles {
+  margin: 0;
+  font-family: "Press Start 2P", cursive;
+}
+
+h1 {
+  font-size: clamp(1.4rem, 3vw, 2.5rem);
+  line-height: 1.4;
+  max-width: 12ch;
+}
+
+h2 {
+  font-size: 1rem;
+  line-height: 1.5;
+}
+
+.hero-copy,
+.supporting,
+.log-date,
+label {
+  font-size: 1.5rem;
+  line-height: 1.2;
+}
+
+.hero-copy {
+  max-width: 58ch;
+}
+
+.quest-row,
+.character-grid,
+.mission-grid {
+  display: grid;
+  gap: 20px;
+}
+
+.quest-row {
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  margin-top: 24px;
+}
+
+.quest-card {
+  padding: 18px;
+}
+
+.sync-banner,
+.setup-panel {
+  margin-top: 20px;
+  padding: 14px 16px;
+  border: 4px solid var(--border);
+  background: rgba(0, 0, 0, 0.18);
+}
+
+.sync-banner[data-status="connected"] {
+  background: rgba(95, 155, 67, 0.2);
+}
+
+.sync-banner[data-status="loading"] {
+  background: rgba(240, 199, 94, 0.14);
+}
+
+.sync-banner[data-status="error"] {
+  background: rgba(239, 106, 56, 0.18);
+}
+
+.value,
+.runner-miles {
+  font-size: 1.2rem;
+  color: var(--cream);
+  line-height: 1.4;
+}
+
+.progress-track {
+  width: 100%;
+  height: 28px;
+  margin: 14px 0 10px;
+  background:
+    linear-gradient(90deg, #5b432d 50%, #4e3825 50%),
+    linear-gradient(#0000, #0000);
+  background-size: 14px 100%;
+  border: 4px solid var(--border);
+}
+
+.progress-fill {
+  width: 0;
+  height: 100%;
+  background:
+    repeating-linear-gradient(
+      90deg,
+      var(--gold) 0 12px,
+      var(--gold-deep) 12px 24px
+    );
+  transition: width 180ms ease-out;
+}
+
+.ring-scene {
+  position: relative;
+  height: 88px;
+  margin: 18px 0 12px;
+  border: 4px solid var(--border);
+  overflow: hidden;
+  background:
+    linear-gradient(180deg, #6aa4b9 0 35%, #88bf6d 35% 72%, #7a4a21 72% 100%);
+}
+
+.mountain {
+  position: absolute;
+  inset: auto 0 0 auto;
+  width: 92px;
+  height: 92px;
+  background: linear-gradient(135deg, #26150f 50%, #4d2816 50%);
+  clip-path: polygon(45% 0, 100% 100%, 0 100%);
+}
+
+.ring-token {
+  position: absolute;
+  left: 8px;
+  bottom: 16px;
+  width: 24px;
+  height: 24px;
+  border: 4px solid #8b5a10;
+  background: #ffd768;
+  box-shadow: inset 0 0 0 4px #f8e8a3;
+  transition: left 180ms ease-out, bottom 180ms ease-out, transform 180ms ease-out;
+}
+
+.character-grid {
+  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+  margin: 28px 0;
+}
+
+.character-card {
+  padding: 20px;
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.03), transparent 30%),
+    var(--panel-alt);
+}
+
+.character-header {
+  display: grid;
+  grid-template-columns: 96px 1fr;
+  gap: 16px;
+  align-items: center;
+}
+
+.sprite {
+  width: 96px;
+  height: 96px;
+  border: 4px solid var(--border);
+  background-color: #d2bb8a;
+  box-shadow: inset 0 0 0 4px rgba(0, 0, 0, 0.16);
+}
+
+.sam-sprite {
+  background:
+    linear-gradient(#3a2a14 0 18%, transparent 18%),
+    linear-gradient(90deg, transparent 0 12%, #52382c 12% 24%, transparent 24% 76%, #52382c 76% 88%, transparent 88%),
+    linear-gradient(180deg, transparent 0 32%, #d8c69d 32% 56%, #1e1d2a 56% 68%, #c85d3a 68% 100%);
+  background-color: #7caa54;
+}
+
+.frodo-sprite {
+  background:
+    linear-gradient(#2e1d10 0 18%, transparent 18%),
+    linear-gradient(90deg, transparent 0 14%, #d2bb8a 14% 22%, transparent 22% 78%, #d2bb8a 78% 86%, transparent 86%),
+    linear-gradient(180deg, transparent 0 30%, #dbc49d 30% 56%, #5a6841 56% 68%, #a05a2a 68% 100%);
+  background-color: #90b965;
+}
+
+.runner-stats {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+  margin: 20px 0 18px;
+}
+
+.mile-form label {
+  display: block;
+  margin-bottom: 8px;
+}
+
+.form-row {
+  display: flex;
+  gap: 10px;
+}
+
+input {
+  width: 100%;
+  min-width: 0;
+  padding: 10px 12px;
+  border: 4px solid var(--border);
+  background: #f2dfb4;
+  color: var(--ink);
+  font-size: 1.5rem;
+}
+
+button {
+  padding: 10px 16px;
+  border: 4px solid var(--border);
+  background: var(--gold);
+  color: var(--ink);
+  font-family: "Press Start 2P", cursive;
+  font-size: 0.65rem;
+  line-height: 1.5;
+  cursor: pointer;
+}
+
+button:hover,
+button:focus-visible {
+  background: #ffd774;
+}
+
+.run-log {
+  list-style: none;
+  margin: 18px 0 0;
+  padding: 0;
+  display: grid;
+  gap: 10px;
+  max-height: 240px;
+  overflow: auto;
+}
+
+.log-item {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  align-items: center;
+  padding: 10px 12px;
+  border: 4px solid var(--border);
+  background: rgba(0, 0, 0, 0.18);
+  font-size: 1.4rem;
+}
+
+.summary-item {
+  background: rgba(240, 199, 94, 0.14);
+}
+
+.log-miles {
+  color: var(--gold);
+}
+
+.mission-panel {
+  margin-top: 8px;
+}
+
+.mission-header {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  align-items: end;
+}
+
+.reset-button {
+  background: var(--ember);
+  color: #fff7ed;
+}
+
+.mission-grid {
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  margin-top: 22px;
+}
+
+.mission-card {
+  padding: 16px;
+  border: 4px solid var(--border);
+  background: #533423;
+  opacity: 0.5;
+  transform: translateY(0);
+  transition: opacity 160ms ease-out, transform 160ms ease-out, background 160ms ease-out;
+}
+
+.mission-card.unlocked {
+  background: linear-gradient(180deg, #7a4a24 0%, #6a9b44 100%);
+  opacity: 1;
+  transform: translateY(-4px);
+}
+
+.mission-card h3 {
+  margin: 0 0 10px;
+  font-family: "Press Start 2P", cursive;
+  font-size: 0.72rem;
+  line-height: 1.5;
+}
+
+.mission-card p {
+  margin: 0;
+  font-size: 1.35rem;
+  line-height: 1.1;
+}
+
+@media (max-width: 740px) {
+  .app-shell {
+    width: min(100% - 20px, 1100px);
+    padding-top: 16px;
+  }
+
+  .hero-panel,
+  .mission-panel,
+  .character-card {
+    padding: 16px;
+  }
+
+  .character-header {
+    grid-template-columns: 1fr;
+  }
+
+  .form-row,
+  .mission-header {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  button {
+    width: 100%;
+  }
+}
