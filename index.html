@@ -29,6 +29,12 @@
 
         <div class="quest-row">
           <article class="quest-card total-card">
+            <div class="ring-ornament" aria-hidden="true">
+              <div class="ring-ornament-beams"></div>
+              <div class="ring-ornament-ring">
+                <div class="ring-ornament-inner"></div>
+              </div>
+            </div>
             <p class="label">Fellowship Progress</p>
             <p class="value"><span id="totalMiles">0.0</span> / <span id="goalMiles">0.0</span> miles</p>
             <div class="progress-track">
@@ -70,6 +76,38 @@
           </button>
         </div>
         <div id="missions" class="mission-grid"></div>
+      </section>
+
+      <section class="mission-panel chart-panel">
+        <div class="mission-header">
+          <div>
+            <p class="eyebrow">Progress Chart</p>
+            <h2>Cumulative fellowship miles by day</h2>
+          </div>
+        </div>
+        <div class="chart-shell">
+          <div class="chart-y-label">Miles</div>
+          <div class="chart-stage">
+            <svg
+              id="progressChart"
+              class="progress-chart"
+              viewBox="0 0 720 280"
+              preserveAspectRatio="none"
+              aria-labelledby="chartTitle chartDesc"
+              role="img"
+            >
+              <title id="chartTitle">Cumulative miles by day of month</title>
+              <desc id="chartDesc">A line chart showing fellowship progress across the month.</desc>
+              <g id="chartGrid"></g>
+              <path id="chartArea" class="chart-area" d=""></path>
+              <path id="chartLine" class="chart-line" d=""></path>
+              <g id="chartPoints"></g>
+              <g id="chartYTicks"></g>
+            </svg>
+            <p id="chartEmpty" class="chart-empty">Log a run to reveal the quest path across the month.</p>
+            <div id="chartXTicks" class="chart-x-ticks"></div>
+          </div>
+        </div>
       </section>
 
       <section id="setupPanel" class="setup-panel" hidden>
