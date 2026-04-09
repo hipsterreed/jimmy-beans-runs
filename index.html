@@ -117,7 +117,7 @@
         aria-labelledby="runnerTitle"
         aria-describedby="runnerDescription"
       >
-        <p class="eyebrow">New Fellowship Member</p>
+        <p id="runnerModalEyebrow" class="eyebrow">New Fellowship Member</p>
         <h2 id="runnerTitle">Add a runner to the quest</h2>
         <p id="runnerDescription" class="supporting">
           Pick a name, claim a character, and set the number of miles this
@@ -125,6 +125,8 @@
         </p>
 
         <form id="runnerForm" class="stack-form">
+          <input id="runnerId" name="runnerId" type="hidden" />
+
           <label for="runnerName">Runner name</label>
           <input
             id="runnerName"
@@ -161,6 +163,9 @@
 
     <template id="runnerCardTemplate">
       <article class="character-card">
+        <div class="card-actions">
+          <button type="button" class="ghost-button edit-runner-button">Edit</button>
+        </div>
         <div class="character-header">
           <div class="sprite" aria-hidden="true"></div>
           <div>
@@ -203,8 +208,11 @@
 
     <template id="logItemTemplate">
       <li class="log-item">
-        <span class="log-miles"></span>
-        <span class="log-date"></span>
+        <div class="log-copy">
+          <span class="log-miles"></span>
+          <span class="log-date"></span>
+        </div>
+        <button type="button" class="ghost-button delete-run-button">Delete</button>
       </li>
     </template>
 

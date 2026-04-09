@@ -8,6 +8,7 @@ import {
   getFirestore,
   onSnapshot,
   setDoc,
+  updateDoc,
 } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-firestore.js";
 import { FIREBASE_CONFIG } from "./firebase-config.js";
 
@@ -36,6 +37,15 @@ const DEFAULT_RUNNERS = [
   { id: "runner-sam", name: "Hipster Sam", characterKey: "sam", goalMiles: 30, createdAtMs: 1 },
   { id: "runner-frodo", name: "Frodo Bean", characterKey: "frodo", goalMiles: 30, createdAtMs: 2 },
 ];
+
+const CUSTOM_RUNNER_IMAGES = {
+  "runner-sam": "./assets/hipster_sam.jpg",
+  "frodo bean": "./assets/frodo_bean.JPG",
+  breezy: "./assets/breezy.JPG",
+  "con bombadil": "./assets/con_bombadil.JPG",
+  "tanner the treacherous": "./assets/tanner_the_treacherous.JPG",
+  mason: "./assets/mason.JPG",
+};
 
 const MISSION_COPY = [
   { title: "Leave the Shire", description: "Breakfast complete. The quest is officially on." },
@@ -67,9 +77,11 @@ const elements = {
   addRunnerButton: document.getElementById("addRunnerButton"),
   runnerModal: document.getElementById("runnerModal"),
   runnerForm: document.getElementById("runnerForm"),
+  runnerId: document.getElementById("runnerId"),
   runnerName: document.getElementById("runnerName"),
   characterSelect: document.getElementById("characterSelect"),
   runnerGoal: document.getElementById("runnerGoal"),
+  runnerModalEyebrow: document.getElementById("runnerModalEyebrow"),
   cancelRunnerButton: document.getElementById("cancelRunnerButton"),
   saveRunnerButton: document.getElementById("saveRunnerButton"),
   resetButton: document.getElementById("resetButton"),
@@ -82,6 +94,8 @@ const state = {
   runners: [],
   runs: [],
 };
+
+let runnerModalMode = "create";
 
 function hasFirebaseConfig() {
   return Object.values(FIREBASE_CONFIG).every(
@@ -130,6 +144,16 @@ function setSyncState(message, status) {
 
 function characterFor(key) {
   return CHARACTER_OPTIONS.find((character) => character.key === key) || CHARACTER_OPTIONS[0];
+}
+
+function normalizeRunnerKey(value) {
+  return String(value || "")
+    .trim()
+    .toLowerCase();
+}
+
+function customImageForRunner(runner) {
+  return CUSTOM_RUNNER_IMAGES[runner.id] || CUSTOM_RUNNER_IMAGES[normalizeRunnerKey(runner.name)] || null;
 }
 
 function runnerRuns(runnerId) {
@@ -192,6 +216,10 @@ function populateCharacterOptions() {
     option.textContent = `${character.label} - ${character.flavor}`;
     elements.characterSelect.appendChild(option);
   });
+}
+
+function runnerById(runnerId) {
+  return state.runners.find((runner) => runner.id === runnerId) || null;
 }
 
 function buildMissionSteps(goalMiles) {
@@ -257,9 +285,17 @@ function renderRunnerCards() {
     const form = card.querySelector(".mile-form");
     const runDateInput = form.elements.runDate;
     const log = card.querySelector(".run-log");
+    const editRunnerButton = card.querySelector(".edit-runner-button");
 
     card.dataset.character = character.accent;
-    sprite.classList.add(`sprite-${character.key}`);
+    card.dataset.runnerId = runner.id;
+    const customImage = customImageForRunner(runner);
+    if (customImage) {
+      sprite.classList.add("sprite-photo");
+      sprite.style.backgroundImage = `url("${customImage}")`;
+    } else {
+      sprite.classList.add(`sprite-${character.key}`);
+    }
     roleLabel.textContent = `Runner ${index + 1} · ${character.label}`;
     nameLabel.textContent = runner.name;
     flavorLabel.textContent = character.flavor;
@@ -268,6 +304,7 @@ function renderRunnerCards() {
     entryCount.textContent = String(entries.length);
     form.dataset.runnerId = runner.id;
     runDateInput.value = todayIsoDate();
+    editRunnerButton.dataset.runnerId = runner.id;
 
     const summaryItem = document.createElement("li");
     summaryItem.className = "log-item summary-item";
@@ -278,6 +315,9 @@ function renderRunnerCards() {
       const item = elements.logItemTemplate.content.firstElementChild.cloneNode(true);
       item.querySelector(".log-miles").textContent = `${formatMiles(entry.miles)} mi`;
       item.querySelector(".log-date").textContent = parseDateLabel(entry.runDate);
+      const deleteButton = item.querySelector(".delete-run-button");
+      deleteButton.dataset.runId = entry.id;
+      deleteButton.textContent = "X";
       log.appendChild(item);
     });
 
@@ -378,6 +418,14 @@ async function addRunner(db, runner) {
   });
 }
 
+async function updateRunner(db, runner) {
+  await updateDoc(doc(db, "quests", QUEST_ID, "runners", runner.id), {
+    name: runner.name,
+    characterKey: runner.characterKey,
+    goalMiles: runner.goalMiles,
+  });
+}
+
 async function addRun(db, runnerId, miles, runDate) {
   await addDoc(runsCollection(db), {
     runnerId,
@@ -385,6 +433,10 @@ async function addRun(db, runnerId, miles, runDate) {
     runDate,
     createdAtMs: Date.now(),
   });
+}
+
+async function deleteRun(db, runId) {
+  await deleteDoc(doc(db, "quests", QUEST_ID, "runs", runId));
 }
 
 async function resetQuest(db) {
@@ -480,8 +532,13 @@ function bindModalClose() {
 
 function bindUi(db) {
   elements.addRunnerButton.addEventListener("click", () => {
+    runnerModalMode = "create";
     elements.runnerForm.reset();
+    elements.runnerId.value = "";
     elements.runnerGoal.value = String(DEFAULT_RUNNER_GOAL);
+    elements.runnerModalEyebrow.textContent = "New Fellowship Member";
+    document.getElementById("runnerTitle").textContent = "Add a runner to the quest";
+    elements.saveRunnerButton.textContent = "Add To Fellowship";
     openModal(elements.runnerModal, elements.runnerName);
   });
 
@@ -492,6 +549,7 @@ function bindUi(db) {
   elements.runnerForm.addEventListener("submit", async (event) => {
     event.preventDefault();
 
+    const runnerId = elements.runnerId.value;
     const name = elements.runnerName.value.trim();
     const characterKey = elements.characterSelect.value;
     const goalMiles = Number.parseInt(elements.runnerGoal.value, 10);
@@ -501,16 +559,65 @@ function bindUi(db) {
     }
 
     elements.saveRunnerButton.disabled = true;
-    setSyncState("Adding a new fellowship member...", "loading");
+    setSyncState(
+      runnerModalMode === "edit" ? "Updating fellowship member..." : "Adding a new fellowship member...",
+      "loading",
+    );
 
     try {
-      await addRunner(db, { name, characterKey, goalMiles });
+      if (runnerModalMode === "edit" && runnerId) {
+        await updateRunner(db, { id: runnerId, name, characterKey, goalMiles });
+      } else {
+        await addRunner(db, { name, characterKey, goalMiles });
+      }
       closeModal(elements.runnerModal, elements.addRunnerButton);
     } catch (error) {
       console.error(error);
-      setSyncState("Could not add runner. Check Firestore rules.", "error");
+      setSyncState("Could not save runner changes. Check Firestore rules.", "error");
     } finally {
       elements.saveRunnerButton.disabled = false;
+    }
+  });
+
+  elements.runnerGrid.addEventListener("click", async (event) => {
+    const editButton = event.target.closest(".edit-runner-button");
+    const deleteRunButton = event.target.closest(".delete-run-button");
+
+    if (editButton) {
+      const runner = runnerById(editButton.dataset.runnerId);
+      if (!runner) {
+        return;
+      }
+
+      runnerModalMode = "edit";
+      elements.runnerId.value = runner.id;
+      elements.runnerName.value = runner.name;
+      elements.characterSelect.value = runner.characterKey;
+      elements.runnerGoal.value = String(runner.goalMiles);
+      elements.runnerModalEyebrow.textContent = "Edit Fellowship Member";
+      document.getElementById("runnerTitle").textContent = "Update this runner";
+      elements.saveRunnerButton.textContent = "Save Changes";
+      openModal(elements.runnerModal, elements.runnerName);
+      return;
+    }
+
+    if (deleteRunButton) {
+      const runId = deleteRunButton.dataset.runId;
+      if (!runId) {
+        return;
+      }
+
+      deleteRunButton.disabled = true;
+      setSyncState("Removing logged run...", "loading");
+
+      try {
+        await deleteRun(db, runId);
+      } catch (error) {
+        console.error(error);
+        setSyncState("Could not remove run. Check Firestore rules.", "error");
+      } finally {
+        deleteRunButton.disabled = false;
+      }
     }
   });
 
