@@ -8,7 +8,6 @@ const elements = {
   goalMiles: document.getElementById("goalMiles"),
   progressFill: document.getElementById("progressFill"),
   progressText: document.getElementById("progressText"),
-  journeyScene: document.getElementById("journeyScene"),
   journeyMarker: document.getElementById("journeyMarker"),
   ringText: document.getElementById("ringText"),
   missions: document.getElementById("missions"),
@@ -258,12 +257,10 @@ export function renderProgress() {
   elements.progressFill.style.width = `${progressRatio * 100}%`;
   elements.ringText.textContent = ringNarration(progressRatio, goalMiles);
 
-  // Animate journey image + marker from start to current progress
-  elements.journeyScene.style.backgroundPositionX = "0%";
+  // Animate marker from start to current progress position
   elements.journeyMarker.style.left = "0%";
   requestAnimationFrame(() => {
     requestAnimationFrame(() => {
-      elements.journeyScene.style.backgroundPositionX = `${progressRatio * 100}%`;
       elements.journeyMarker.style.left = `${progressRatio * 100}%`;
     });
   });

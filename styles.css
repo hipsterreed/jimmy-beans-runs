@@ -238,7 +238,7 @@ label {
 }
 
 .quest-row {
-  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  grid-template-columns: 1fr;
   margin-top: 24px;
 }
 
@@ -254,12 +254,26 @@ label {
 .total-card-header {
   display: flex;
   justify-content: space-between;
-  align-items: flex-start;
-  margin-bottom: 10px;
+  align-items: center;
+  margin-bottom: 12px;
 }
 
-.total-card-header .label {
+.total-card-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 16px;
+  margin-top: 10px;
+}
+
+.total-card-footer .label {
   margin: 0;
+  flex-shrink: 0;
+}
+
+.total-card-footer .supporting {
+  margin: 0;
+  text-align: right;
 }
 
 .total-miles-display {
@@ -475,39 +489,59 @@ label {
 
 .journey-scene {
   position: relative;
-  height: 120px;
-  margin: 12px 0 10px;
-  border: 3px solid var(--border);
+  height: 160px;
+  border: 2px solid var(--border);
   background-image: url("assets/journey.png");
-  background-size: auto 100%;
+  background-size: 100% 100%;
   background-repeat: no-repeat;
-  background-position-x: 0%;
-  background-position-y: center;
-  transition: background-position-x 4s cubic-bezier(0.25, 0, 0.2, 1);
-  overflow: visible;
+  overflow: hidden;
+}
+
+.journey-progress-strip {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 10px;
+  background: rgba(0, 0, 0, 0.55);
+  backdrop-filter: blur(1px);
+}
+
+.journey-progress-strip .progress-fill {
+  height: 100%;
+  background: linear-gradient(
+    90deg,
+    #ffe066 0%,
+    #f0a800 35%,
+    #c87800 65%,
+    #e09020 100%
+  );
+  box-shadow: inset 0 1px 0 rgba(255,240,160,0.5), 2px 0 8px rgba(255,180,0,0.5);
+  transition: width 400ms cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .journey-marker {
   position: absolute;
-  top: -10px;
-  bottom: -3px;
+  top: 0;
+  bottom: 10px;
   left: 0%;
   transform: translateX(-50%);
   width: 2px;
-  background: linear-gradient(180deg, transparent 0%, rgba(255,220,80,0.8) 20%, rgba(255,220,80,0.8) 100%);
-  transition: left 4s cubic-bezier(0.25, 0, 0.2, 1);
+  background: linear-gradient(180deg, transparent 0%, rgba(255, 220, 80, 0.6) 30%, rgba(255, 220, 80, 0.9) 100%);
+  transition: left 1.6s cubic-bezier(0.4, 0, 0.2, 1);
   pointer-events: none;
+  z-index: 1;
 }
 
 .journey-marker::before {
   content: "▼";
   position: absolute;
-  top: -4px;
+  top: 6px;
   left: 50%;
   transform: translateX(-50%);
-  font-size: 14px;
+  font-size: 13px;
   color: #ffe850;
-  text-shadow: 0 0 6px rgba(255, 220, 0, 0.9), 0 0 12px rgba(255, 180, 0, 0.6);
+  text-shadow: 0 0 6px rgba(255, 220, 0, 0.9), 0 0 14px rgba(255, 180, 0, 0.7);
   line-height: 1;
 }
 

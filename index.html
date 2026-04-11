@@ -31,7 +31,12 @@
         <div class="quest-row">
           <article class="quest-card total-card">
             <div class="total-card-header">
-              <p class="label">Fellowship Progress</p>
+              <div class="total-miles-display">
+                <span class="total-miles-value" id="totalMiles">0.0</span>
+                <span class="total-miles-sep">/</span>
+                <span class="total-miles-goal" id="goalMiles">0.0</span>
+                <span class="total-miles-unit">mi</span>
+              </div>
               <div class="ring-ornament" aria-hidden="true">
                 <div class="ring-ornament-beams"></div>
                 <div class="ring-ornament-ring">
@@ -39,24 +44,19 @@
                 </div>
               </div>
             </div>
-            <div class="total-miles-display">
-              <span class="total-miles-value" id="totalMiles">0.0</span>
-              <span class="total-miles-sep">/</span>
-              <span class="total-miles-goal" id="goalMiles">0.0</span>
-              <span class="total-miles-unit">mi</span>
-            </div>
-            <div class="progress-track">
-              <div id="progressFill" class="progress-fill"></div>
-            </div>
-            <p id="progressText" class="supporting">Recruit runners to begin the quest.</p>
-          </article>
 
-          <article class="quest-card ring-card">
-            <p class="label">The Journey</p>
             <div id="journeyScene" class="journey-scene">
               <div id="journeyMarker" class="journey-marker"></div>
+              <div class="journey-progress-strip">
+                <div id="progressFill" class="progress-fill"></div>
+              </div>
             </div>
-            <p id="ringText" class="supporting">The ring waits for the fellowship to form.</p>
+
+            <div class="total-card-footer">
+              <p class="label">Fellowship Progress</p>
+              <p id="progressText" class="supporting">Recruit runners to begin the quest.</p>
+            </div>
+            <p id="ringText" class="supporting" style="display:none"></p>
           </article>
         </div>
       </section>
