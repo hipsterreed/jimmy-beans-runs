@@ -3,6 +3,7 @@ import { characterFor, customImageForRunner, formatMiles, parseDateLabel, todayI
 import { MISSION_COPY, MILESTONE_STEP } from "./data.js";
 
 const elements = {
+  fellowshipCluster: document.getElementById("fellowshipCluster"),
   totalMiles: document.getElementById("totalMiles"),
   goalMiles: document.getElementById("goalMiles"),
   progressFill: document.getElementById("progressFill"),
@@ -75,6 +76,53 @@ function buildMissionSteps(goalMiles) {
   });
 
   return steps;
+}
+
+export function renderFellowshipCluster() {
+  const cluster = elements.fellowshipCluster;
+  cluster.innerHTML = "";
+
+  if (state.runners.length === 0) return;
+
+  const offsets = [
+    // back row
+    { x: 30, y: 22, delay: 1.1 },
+    { x: 52, y: 18, delay: 2.3 },
+    { x: 72, y: 24, delay: 0.6 },
+    // middle row
+    { x: 18, y: 50, delay: 1.8 },
+    { x: 42, y: 46, delay: 0.2 },
+    { x: 63, y: 52, delay: 2.7 },
+    { x: 84, y: 48, delay: 1.4 },
+    // front row
+    { x: 28, y: 78, delay: 0.8 },
+    { x: 52, y: 82, delay: 2.0 },
+    { x: 74, y: 78, delay: 1.5 },
+  ];
+
+  [...state.runners]
+    .sort((a, b) => a.createdAtMs - b.createdAtMs)
+    .forEach((runner, i) => {
+      const character = characterFor(runner.characterKey);
+      const pos = offsets[i % offsets.length];
+      const bubble = document.createElement("div");
+      bubble.className = "cluster-bubble";
+      bubble.style.left = `${pos.x}%`;
+      bubble.style.top = `${pos.y}%`;
+      bubble.style.animationDelay = `${pos.delay}s`;
+
+      const avatar = document.createElement("div");
+      avatar.className = "cluster-avatar";
+      const customImage = customImageForRunner(runner);
+      if (customImage) {
+        avatar.classList.add("sprite-photo");
+        avatar.style.backgroundImage = `url("${customImage}")`;
+      } else {
+        avatar.classList.add(`sprite-${character.key}`);
+      }
+      bubble.appendChild(avatar);
+      cluster.appendChild(bubble);
+    });
 }
 
 export function renderRunnerCards() {
@@ -369,6 +417,7 @@ function renderChart() {
 
 export function render() {
   renderRunnerCards();
+  renderFellowshipCluster();
   renderProgress();
   renderMissions();
   renderChart();

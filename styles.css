@@ -74,6 +74,68 @@ textarea {
   padding: 24px;
 }
 
+.hero-top {
+  position: relative;
+  margin-bottom: 24px;
+  display: flex;
+  align-items: flex-start;
+  gap: 16px;
+  min-height: 220px;
+}
+
+.hero-eyebrow {
+  position: absolute;
+  top: 0;
+  right: 0;
+  margin: 0;
+  text-align: right;
+  z-index: 1;
+  pointer-events: none;
+}
+
+.hero-content {
+  flex: 1 1 0;
+  min-width: 0;
+}
+
+/* ── Fellowship cluster ── */
+.fellowship-cluster {
+  flex: 0 0 42%;
+  position: relative;
+  align-self: stretch;
+  min-height: 220px;
+  pointer-events: none;
+  overflow: hidden;
+}
+
+.cluster-bubble {
+  position: absolute;
+  transform: translate(-50%, -50%);
+  animation: float 4s ease-in-out infinite;
+}
+
+.cluster-avatar {
+  width: 50px;
+  height: 50px;
+  border-radius: 50%;
+  border: 3px solid #c8922a;
+  background-color: #d2bb8a;
+  box-shadow:
+    0 0 0 1px #3a2608,
+    0 0 0 4px #7a5410,
+    0 0 0 5px #c8922a,
+    0 0 12px rgba(200, 146, 42, 0.5),
+    inset 0 0 0 3px rgba(0, 0, 0, 0.2);
+  background-position: center;
+  background-repeat: no-repeat;
+  background-size: cover;
+}
+
+@keyframes float {
+  0%, 100% { transform: translate(-50%, -50%) translateY(0px); }
+  50%       { transform: translate(-50%, -50%) translateY(-10px); }
+}
+
 .eyebrow,
 .label {
   margin: 0 0 8px;
@@ -907,6 +969,18 @@ button:disabled {
   .mission-panel,
   .modal-card {
     padding: 16px;
+  }
+
+  .hero-top {
+    min-height: unset;
+  }
+
+  .hero-content {
+    flex: 1 1 100%;
+  }
+
+  .fellowship-cluster {
+    display: none;
   }
 
   .mission-header,

@@ -4,8 +4,6 @@ import { todayIsoDate } from "./utils.js";
 import { addRunner, updateRunner, addRun, deleteRun, resetQuest } from "./firebase.js";
 
 const elements = {
-  syncBanner: document.getElementById("syncBanner"),
-  syncMessage: document.getElementById("syncMessage"),
   setupPanel: document.getElementById("setupPanel"),
   addRunnerButton: document.getElementById("addRunnerButton"),
   runnerGrid: document.getElementById("runnerGrid"),
@@ -29,9 +27,8 @@ const elements = {
 
 let runnerModalMode = "create";
 
-export function setSyncState(message, status) {
-  elements.syncMessage.textContent = message;
-  elements.syncBanner.dataset.status = status;
+export function setSyncState(_message, _status) {
+  // sync banner removed from UI
 }
 
 export function hasFirebaseConfig(config) {
