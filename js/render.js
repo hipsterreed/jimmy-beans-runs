@@ -25,8 +25,8 @@ const elements = {
 };
 
 const CHART_WIDTH = 720;
-const CHART_HEIGHT = 280;
-const CHART_PADDING = { top: 18, right: 18, bottom: 26, left: 44 };
+const CHART_HEIGHT = 180;
+const CHART_PADDING = { top: 12, right: 14, bottom: 22, left: 38 };
 
 function runnerNarration(runner) {
   const goal = Math.max(runner.goalMiles, 1);
@@ -340,6 +340,14 @@ function monthlyCumulativeSeries() {
   });
 }
 
+function todaySeriesCutoff(year, monthIndex, seriesLength) {
+  const today = new Date();
+  if (today.getFullYear() === year && today.getMonth() === monthIndex) {
+    return Math.min(today.getDate(), seriesLength);
+  }
+  return seriesLength;
+}
+
 function chartYMax(series) {
   const topValue = Math.max(...series.map((point) => point.total), 0);
   const goal = totalGoalMiles();
@@ -361,9 +369,12 @@ function chartCoordinates(series, yMax) {
 
 function renderChart() {
   const series = monthlyCumulativeSeries();
+  const { year, monthIndex } = chartMonthInfo();
+  const cutoff = todaySeriesCutoff(year, monthIndex, series.length);
   const hasData = state.runs.length > 0 && series.some((point) => point.total > 0);
   const yMax = chartYMax(series);
   const coords = chartCoordinates(series, yMax);
+  const visibleCoords = coords.slice(0, cutoff);
   const baselineY = CHART_HEIGHT - CHART_PADDING.bottom;
 
   elements.chartGrid.innerHTML = "";
@@ -408,16 +419,16 @@ function renderChart() {
     return;
   }
 
-  const linePath = coords
+  const linePath = visibleCoords
     .map((point, index) => `${index === 0 ? "M" : "L"} ${point.x} ${point.y}`)
     .join(" ");
-  const areaPath = `${linePath} L ${coords[coords.length - 1].x} ${baselineY} L ${coords[0].x} ${baselineY} Z`;
+  const areaPath = `${linePath} L ${visibleCoords[visibleCoords.length - 1].x} ${baselineY} L ${visibleCoords[0].x} ${baselineY} Z`;
 
   elements.chartLine.setAttribute("d", linePath);
   elements.chartArea.setAttribute("d", areaPath);
 
-  coords
-    .filter((point) => point.day === 1 || point.day === series.length || point.total > 0)
+  visibleCoords
+    .filter((point) => point.day === 1 || point.day === visibleCoords.length || point.total > 0)
     .forEach((point) => {
       const eyeGroup = document.createElementNS("http://www.w3.org/2000/svg", "g");
       eyeGroup.setAttribute("class", "chart-eye");

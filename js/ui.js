@@ -128,6 +128,9 @@ export function bindModalClose() {
 }
 
 export function bindUi(db) {
+  const isAdmin = new URLSearchParams(window.location.search).get("admin") === "true";
+  elements.resetButton.hidden = !isAdmin;
+
   elements.addRunnerButton.addEventListener("click", () => {
     runnerModalMode = "create";
     elements.runnerForm.reset();
