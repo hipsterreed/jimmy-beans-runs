@@ -178,7 +178,6 @@ export function renderRunnerCards() {
     const flavorLabel = card.querySelector(".runner-flavor");
     const mileValue = card.querySelector(".runner-mile-value");
     const goalValue = card.querySelector(".runner-goal-value");
-    const entryCount = card.querySelector(".runner-entry-count");
     const form = card.querySelector(".mile-form");
     const runDateInput = form.elements.runDate;
     const log = card.querySelector(".run-log");
@@ -222,15 +221,12 @@ export function renderRunnerCards() {
     flavorLabel.textContent = character.flavor;
     mileValue.textContent = formatMiles(miles);
     goalValue.textContent = String(runner.goalMiles);
-    entryCount.textContent = String(entries.length);
+
     form.dataset.runnerId = runner.id;
     runDateInput.value = todayIsoDate();
     editRunnerButton.dataset.runnerId = runner.id;
 
-    const summaryItem = document.createElement("li");
-    summaryItem.className = "log-item summary-item";
-    summaryItem.innerHTML = `<span class="log-miles">Quest Mood</span><span class="log-date">${runnerNarration(runner)}</span>`;
-    log.appendChild(summaryItem);
+    card.querySelector(".quest-mood").textContent = runnerNarration(runner);
 
     entries.forEach((entry) => {
       const item = elements.logItemTemplate.content.firstElementChild.cloneNode(true);
@@ -238,7 +234,6 @@ export function renderRunnerCards() {
       item.querySelector(".log-date").textContent = parseDateLabel(entry.runDate);
       const deleteButton = item.querySelector(".delete-run-button");
       deleteButton.dataset.runId = entry.id;
-      deleteButton.textContent = "X";
       log.appendChild(item);
     });
 

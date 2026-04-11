@@ -242,30 +242,29 @@
         <div class="card-nameplate">
           <h2 class="runner-name"></h2>
           <button type="button" class="ghost-button edit-runner-button" aria-label="Edit runner">
-            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4Z"/></svg>
+            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4Z"/></svg>
           </button>
         </div>
-        <div class="character-header">
-          <div class="sprite-wrap">
-            <div class="sprite-frame">
-              <div class="sprite" aria-hidden="true"></div>
+        <div class="card-scroll">
+          <div class="character-header">
+            <div class="sprite-wrap">
+              <div class="sprite-frame">
+                <div class="sprite" aria-hidden="true"></div>
+              </div>
+              <p class="runner-role"></p>
             </div>
-            <p class="runner-role"></p>
+            <div class="runner-header-right">
+              <p class="runner-miles-inline"><span class="runner-mile-value">0.0</span> / <span class="runner-goal-value">0</span> mi</p>
+              <p class="supporting runner-flavor"></p>
+            </div>
           </div>
-          <p class="supporting runner-flavor"></p>
-        </div>
 
-        <div class="runner-stats">
-          <div>
-            <p class="label">Miles Logged</p>
-            <p class="runner-miles"><span class="runner-mile-value">0.0</span> / <span class="runner-goal-value">0</span></p>
-          </div>
-          <div>
-            <p class="label">Entries</p>
-            <p class="runner-miles runner-entry-count">0</p>
+          <div class="log-section">
+            <ul class="run-log"></ul>
           </div>
         </div>
 
+        <p class="quest-mood"></p>
         <form class="mile-form">
           <label>Log a run</label>
           <div class="form-grid">
@@ -281,20 +280,17 @@
           </div>
           <button type="submit">Log Quest</button>
         </form>
-
-        <ul class="run-log"></ul>
       </article>
     </template>
 
     <template id="logItemTemplate">
       <li class="log-item">
-        <div class="log-copy">
-          <span class="log-miles"></span>
-          <span class="log-date"></span>
-        </div>
-        <button type="button" class="ghost-button delete-run-button">Delete</button>
+        <span class="log-miles"></span>
+        <span class="log-date"></span>
+        <button type="button" class="delete-run-button" aria-label="Delete run">✕</button>
       </li>
     </template>
+
 
     <script type="module" src="./app.mjs"></script>
     <script type="text/javascript" async src="https://tenor.com/embed.js"></script>
