@@ -1,0 +1,12 @@
+{
+  "name": "jimmy-beans-runs-api",
+  "version": "1.0.0",
+  "scripts": {
+    "dev": "bun --watch src/index.ts",
+    "start": "bun src/index.ts"
+  },
+  "dependencies": {
+    "elysia": "latest",
+    "firebase-admin": "latest"
+  }
+}
