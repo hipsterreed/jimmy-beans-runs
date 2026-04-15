@@ -305,14 +305,14 @@ const PLAYABLE_QUEST_CONFIGS = {
   },
   "Into Moria": {
     controlsText: "Move with A / D or the arrow keys. Jump with W, Up, or Space.",
-    objectiveText: "Run across the mine, stay ahead of the cave-in, dodge falling rock, and jump the rubble.",
+    objectiveText: "Run across the mine, stay ahead of the Balrog, dodge falling rock, and jump the rubble.",
     introText: "Press start to enter the mine.",
-    runningText: "The roof is coming down. Keep moving east.",
+    runningText: "The Balrog is behind you. Keep moving east.",
     successText: "The company clears the hall. Moria is behind you.",
-    failureText: "The cave-in hit the fellowship. Try the tunnels again.",
+    failureText: "The Balrog caught the fellowship. Try the tunnels again.",
     durationMs: 16000,
     setup() {
-      questGameState.player = { x: 96, y: 270, width: 22, height: 26 };
+      questGameState.player = { x: 136, y: 270, width: 22, height: 26 };
       questGameState.playerVy = 0;
       questGameState.onGround = true;
       questGameState.worldProgress = 0;
@@ -320,6 +320,8 @@ const PLAYABLE_QUEST_CONFIGS = {
     },
     update(deltaMs) {
       const groundY = 270;
+      const balrogEdge = Math.max(0, 28 + (questGameState.elapsedMs / this.durationMs) * 68);
+      const balrogFront = balrogEdge + 16;
       const input = currentInput();
       const baselineSpeed = 0.14 * deltaMs;
       const pushSpeed = input.right ? 0.12 * deltaMs : 0;
@@ -347,8 +349,8 @@ const PLAYABLE_QUEST_CONFIGS = {
         questGameState.player.x = Math.min(150, questGameState.player.x + 0.06 * deltaMs);
       }
 
-      if (questGameState.player.x < 60) {
-        finishQuestGame("The cave-in swallowed the rear path. Keep pressing forward.", "Retry Quest");
+      if (questGameState.player.x <= balrogFront + 4) {
+        finishQuestGame("The Balrog closed the gap. Keep pressing forward.", "Retry Quest");
         return;
       }
 
@@ -389,7 +391,7 @@ const PLAYABLE_QUEST_CONFIGS = {
       questGameState.hazards = questGameState.hazards.filter((hazard) => hazard.x > -60 && hazard.y < QUEST_GAME_CANVAS_HEIGHT + 30);
 
       if (questGameState.hazards.some((hazard) => intersectRect(questGameState.player, hazard))) {
-        finishQuestGame("A cave-in or rubble pile caught the fellowship. Try the tunnels again.", "Retry Quest");
+        finishQuestGame("Falling rock or rubble caught the fellowship. Try the tunnels again.", "Retry Quest");
         return;
       }
 
@@ -409,12 +411,19 @@ const PLAYABLE_QUEST_CONFIGS = {
       for (let i = -1; i < 6; i += 1) {
         drawPixelRect(ctx, 58 + i * 120 - (questGameState.worldProgress % 120), 140, 6, 30, "#ffba45");
       }
-      const collapseEdge = Math.max(0, 48 + (questGameState.elapsedMs / this.durationMs) * 90);
-      drawPixelRect(ctx, 0, 0, collapseEdge, QUEST_GAME_CANVAS_HEIGHT, "rgba(80, 58, 44, 0.75)");
-      drawPixelRect(ctx, collapseEdge - 8, 0, 8, QUEST_GAME_CANVAS_HEIGHT, "#8b6a4d");
-      for (let i = 0; i < 7; i += 1) {
-        drawPixelRect(ctx, collapseEdge - 26 - i * 14, 220 + (i % 3) * 20, 12, 24, "#5e4a3a");
-      }
+      const balrogEdge = Math.max(0, 28 + (questGameState.elapsedMs / this.durationMs) * 68);
+      drawPixelRect(ctx, 0, 0, balrogEdge, QUEST_GAME_CANVAS_HEIGHT, "rgba(40, 10, 8, 0.85)");
+      drawPixelRect(ctx, balrogEdge - 10, 0, 10, QUEST_GAME_CANVAS_HEIGHT, "#8b2418");
+      drawPixelRect(ctx, balrogEdge - 48, 184, 30, 74, "#24100d");
+      drawPixelRect(ctx, balrogEdge - 38, 152, 18, 28, "#3a1812");
+      drawPixelRect(ctx, balrogEdge - 34, 160, 4, 4, "#ffd36d");
+      drawPixelRect(ctx, balrogEdge - 24, 160, 4, 4, "#ffd36d");
+      drawPixelRect(ctx, balrogEdge - 56, 166, 10, 46, "#4a1710");
+      drawPixelRect(ctx, balrogEdge - 10, 166, 10, 46, "#4a1710");
+      drawPixelRect(ctx, balrogEdge - 68, 144, 18, 12, "#2b120e");
+      drawPixelRect(ctx, balrogEdge - 2, 144, 18, 12, "#2b120e");
+      drawPixelRect(ctx, balrogEdge - 14, 132, 6, 20, "#ff7a2f");
+      drawPixelRect(ctx, balrogEdge - 8, 118, 4, 16, "#ffd36d");
       drawHero(ctx, questGameState.player, { skin: "#ece0bb", hair: "#6b6b6b", tunic: "#4b5c6a", accent: "#ffcf6f" });
       questGameState.hazards.forEach((hazard) => {
         if (hazard.type === "falling") {
