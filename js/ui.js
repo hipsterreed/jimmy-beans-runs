@@ -52,6 +52,7 @@ let questGameState = {
   hazards: [],
   spawnTimerMs: 0,
   laneIndex: 1,
+  questData: {},
 };
 
 const QUEST_GAME_CANVAS_WIDTH = 640;
@@ -123,6 +124,7 @@ function resetQuestGameModel() {
   questGameState.onGround = true;
   questGameState.worldProgress = 0;
   questGameState.laneIndex = 1;
+  questGameState.questData = {};
 }
 
 function drawPixelRect(ctx, x, y, width, height, fillStyle) {
@@ -161,6 +163,14 @@ function currentInput() {
   };
 }
 
+function currentDirectionInput() {
+  if (questGameState.keys.has("ArrowUp") || questGameState.keys.has("w") || questGameState.keys.has("W")) return "up";
+  if (questGameState.keys.has("ArrowDown") || questGameState.keys.has("s") || questGameState.keys.has("S")) return "down";
+  if (questGameState.keys.has("ArrowLeft") || questGameState.keys.has("a") || questGameState.keys.has("A")) return "left";
+  if (questGameState.keys.has("ArrowRight") || questGameState.keys.has("d") || questGameState.keys.has("D")) return "right";
+  return null;
+}
+
 function movePlayerHorizontal(deltaMs, speed, minX = 12, maxX = QUEST_GAME_CANVAS_WIDTH - 40) {
   const input = currentInput();
   if (input.left) {
@@ -195,6 +205,17 @@ function drawProgressBar(ctx, durationMs, label, color = "#d4922a") {
   ctx.fillStyle = "#fff2c7";
   ctx.font = '16px "VT323"';
   ctx.fillText(label, 518, 338);
+}
+
+function drawRatioBar(ctx, ratio, label, color = "#d4922a") {
+  const clamped = Math.max(0, Math.min(ratio, 1));
+  const progressWidth = Math.round(clamped * 260);
+  drawPixelRect(ctx, 18, 18, 264, 12, "#2b180f");
+  drawPixelRect(ctx, 20, 20, progressWidth, 8, color);
+  drawPixelRect(ctx, 20 + progressWidth, 20, Math.max(260 - progressWidth, 0), 8, "#57371a");
+  ctx.fillStyle = "#fff2c7";
+  ctx.font = '16px "VT323"';
+  ctx.fillText(label, 504, 338);
 }
 
 function drawHero(ctx, player, palette = { skin: "#f0e1bf", hair: "#6b4f2f", tunic: "#4f7a35", accent: "#e0f0ff" }) {
@@ -252,55 +273,300 @@ function updateSurvivalQuest(deltaMs, config) {
   }
 }
 
+const FORD_MAZE = [
+  "####################",
+  "#........##........#",
+  "#.####.#.##.#.####.#",
+  "#o#....#....#....#o#",
+  "#.#.##.######.##.#.#",
+  "#....##......##....#",
+  "###.#.###..###.#.###",
+  "#...#....##....#...#",
+  "#.#####.#..#.#####.#",
+  "#........##........#",
+  "####################",
+];
+
+const FORD_TILE = 32;
+const FORD_OFFSET_X = 0;
+const FORD_OFFSET_Y = 4;
+const FORD_DIRS = {
+  left: { x: -1, y: 0 },
+  right: { x: 1, y: 0 },
+  up: { x: 0, y: -1 },
+  down: { x: 0, y: 1 },
+};
+
+function fordCellCenter(col, row) {
+  return {
+    x: FORD_OFFSET_X + col * FORD_TILE + FORD_TILE / 2,
+    y: FORD_OFFSET_Y + row * FORD_TILE + FORD_TILE / 2,
+  };
+}
+
+function fordGridPos(x, y) {
+  return {
+    col: Math.round((x - FORD_OFFSET_X - FORD_TILE / 2) / FORD_TILE),
+    row: Math.round((y - FORD_OFFSET_Y - FORD_TILE / 2) / FORD_TILE),
+  };
+}
+
+function fordMazeChar(col, row) {
+  const rowText = FORD_MAZE[row];
+  if (!rowText) return "#";
+  return rowText[col] ?? "#";
+}
+
+function fordWalkable(col, row) {
+  return fordMazeChar(col, row) !== "#";
+}
+
+function fordAligned(entity) {
+  const { x, y } = fordCellCenter(entity.col, entity.row);
+  return Math.abs(entity.x - x) < 0.45 && Math.abs(entity.y - y) < 0.45;
+}
+
+function snapFordEntity(entity) {
+  const center = fordCellCenter(entity.col, entity.row);
+  entity.x = center.x;
+  entity.y = center.y;
+}
+
+function makeFordGhost(col, row, direction, tint) {
+  const center = fordCellCenter(col, row);
+  return {
+    col,
+    row,
+    x: center.x,
+    y: center.y,
+    direction,
+    tint,
+  };
+}
+
+function chooseFordGhostDirection(ghost, player) {
+  const options = Object.entries(FORD_DIRS)
+    .filter(([name, dir]) => {
+      if (ghost.direction && name === oppositeDirection(ghost.direction)) return false;
+      return fordWalkable(ghost.col + dir.x, ghost.row + dir.y);
+    })
+    .map(([name, dir]) => {
+      const nextCol = ghost.col + dir.x;
+      const nextRow = ghost.row + dir.y;
+      const distance = Math.abs(player.col - nextCol) + Math.abs(player.row - nextRow);
+      return { name, distance };
+    });
+
+  if (options.length === 0) return oppositeDirection(ghost.direction) || "left";
+
+  if (Math.random() < 0.28) {
+    return options[Math.floor(Math.random() * options.length)].name;
+  }
+
+  options.sort((a, b) => a.distance - b.distance);
+  return options[0].name;
+}
+
+function oppositeDirection(direction) {
+  return {
+    left: "right",
+    right: "left",
+    up: "down",
+    down: "up",
+  }[direction];
+}
+
+function advanceFordEntity(entity, speed, deltaMs) {
+  const dir = FORD_DIRS[entity.direction];
+  if (!dir) return;
+
+  entity.x += dir.x * speed * deltaMs;
+  entity.y += dir.y * speed * deltaMs;
+  const center = fordCellCenter(entity.col, entity.row);
+  const reachedNext =
+    (dir.x !== 0 && Math.abs(entity.x - center.x) >= FORD_TILE) ||
+    (dir.y !== 0 && Math.abs(entity.y - center.y) >= FORD_TILE);
+
+  if (!reachedNext) return;
+
+  entity.col += dir.x;
+  entity.row += dir.y;
+  snapFordEntity(entity);
+}
+
+function drawFordPlayer(ctx, player) {
+  const angleByDir = {
+    right: 0,
+    left: Math.PI,
+    up: -Math.PI / 2,
+    down: Math.PI / 2,
+  };
+  const mouth = 0.45;
+  const angle = angleByDir[player.direction || "right"];
+  ctx.save();
+  ctx.translate(player.x, player.y);
+  ctx.rotate(angle);
+  ctx.fillStyle = "#f0d36f";
+  ctx.beginPath();
+  ctx.moveTo(0, 0);
+  ctx.arc(0, 0, 12, mouth, Math.PI * 2 - mouth);
+  ctx.closePath();
+  ctx.fill();
+  ctx.fillStyle = "#dcefff";
+  ctx.fillRect(6, -5, 10, 10);
+  ctx.fillStyle = "#7c5e35";
+  ctx.fillRect(8, -9, 6, 4);
+  ctx.fillStyle = "#a8d0ff";
+  ctx.fillRect(-12, -3, 6, 6);
+  ctx.restore();
+}
+
+function drawFordGhost(ctx, ghost) {
+  ctx.fillStyle = ghost.tint;
+  ctx.fillRect(Math.round(ghost.x - 10), Math.round(ghost.y - 10), 20, 18);
+  ctx.fillRect(Math.round(ghost.x - 8), Math.round(ghost.y + 8), 4, 6);
+  ctx.fillRect(Math.round(ghost.x - 1), Math.round(ghost.y + 8), 4, 6);
+  ctx.fillRect(Math.round(ghost.x + 6), Math.round(ghost.y + 8), 4, 6);
+  ctx.fillStyle = "#f5f0e8";
+  ctx.fillRect(Math.round(ghost.x - 6), Math.round(ghost.y - 3), 4, 4);
+  ctx.fillRect(Math.round(ghost.x + 2), Math.round(ghost.y - 3), 4, 4);
+  ctx.fillStyle = "#161212";
+  ctx.fillRect(Math.round(ghost.x - 5), Math.round(ghost.y - 2), 2, 2);
+  ctx.fillRect(Math.round(ghost.x + 3), Math.round(ghost.y - 2), 2, 2);
+}
+
+function updateFordPacman(deltaMs, config) {
+  const data = questGameState.questData;
+  const player = data.player;
+  const wantedDirection = currentDirectionInput();
+
+  if (wantedDirection) {
+    player.pendingDirection = wantedDirection;
+  }
+
+  if (fordAligned(player)) {
+    snapFordEntity(player);
+    if (player.pendingDirection) {
+      const pending = FORD_DIRS[player.pendingDirection];
+      if (fordWalkable(player.col + pending.x, player.row + pending.y)) {
+        player.direction = player.pendingDirection;
+      }
+    }
+
+    const forward = player.direction ? FORD_DIRS[player.direction] : null;
+    if (forward && !fordWalkable(player.col + forward.x, player.row + forward.y)) {
+      player.direction = null;
+    }
+  }
+
+  if (player.direction) {
+    advanceFordEntity(player, 0.13, deltaMs);
+  }
+
+  const pelletKey = `${player.col},${player.row}`;
+  if (data.pellets.has(pelletKey)) {
+    data.pellets.delete(pelletKey);
+  }
+
+  data.ghosts.forEach((ghost) => {
+    if (fordAligned(ghost)) {
+      snapFordEntity(ghost);
+      ghost.direction = chooseFordGhostDirection(ghost, player);
+    }
+    advanceFordEntity(ghost, 0.105, deltaMs);
+  });
+
+  const hitGhost = data.ghosts.some((ghost) => Math.hypot(player.x - ghost.x, player.y - ghost.y) < 18);
+  if (hitGhost) {
+    finishQuestGame(config.failureText, "Retry Quest");
+    return;
+  }
+
+  if (data.pellets.size === 0) {
+    finishQuestGame(config.successText, "Play Again");
+    return;
+  }
+
+  questGameState.elapsedMs += deltaMs;
+}
+
 const PLAYABLE_QUEST_CONFIGS = {
   "Flight to the Ford": {
-    controlsText: "Move with A / D or the arrow keys.",
-    objectiveText: "Dodge the Nazgul until the river crossing opens ahead.",
-    introText: "Press start to ride east.",
-    runningText: "Nazgul on the road. Stay moving.",
-    successText: "The river rises. The Nazgul fall back. Ford reached.",
-    failureText: "A Nazgul caught you before the ford. Try the crossing again.",
-    durationMs: 18000,
-    movement: "free",
-    playerSpeed: 0.22,
-    minX: 12,
-    maxX: QUEST_GAME_CANVAS_WIDTH - 40,
-    spawnMinMs: 380,
-    spawnMaxMs: 740,
+    controlsText: "Move with W A S D or the arrow keys.",
+    objectiveText: "Guide Frodo and Arwen through the woods, collect every light, and avoid the Ringwraiths.",
+    introText: "Press start to ride the hidden paths.",
+    runningText: "Wraiths in the woods. Clear the path to the ford.",
+    successText: "Every woodland light is claimed. The ford is clear ahead.",
+    failureText: "A Ringwraith closed in on the trail. Try the crossing again.",
+    durationMs: 99999,
     setup() {
-      questGameState.player = { x: 84, y: 288, width: 24, height: 24 };
-      questGameState.spawnTimerMs = 280;
-    },
-    spawnHazard() {
-      const width = 22 + Math.round(Math.random() * 10);
-      questGameState.hazards.push({
-        x: randomBetween(260, 590),
-        y: -36,
-        width,
-        height: 28,
-        vx: -0.03,
-        vy: randomBetween(0.12, 0.24),
+      const pellets = new Set();
+      FORD_MAZE.forEach((rowText, row) => {
+        [...rowText].forEach((cell, col) => {
+          if (cell === "." || cell === "o") {
+            pellets.add(`${col},${row}`);
+          }
+        });
       });
+      const start = fordCellCenter(1, 1);
+      questGameState.questData = {
+        pellets,
+        totalPellets: pellets.size,
+        player: {
+          col: 1,
+          row: 1,
+          x: start.x,
+          y: start.y,
+          direction: "right",
+          pendingDirection: "right",
+        },
+        ghosts: [
+          makeFordGhost(8, 5, "left", "#d8dde8"),
+          makeFordGhost(11, 5, "right", "#bac2d4"),
+          makeFordGhost(8, 7, "up", "#c9b8d4"),
+          makeFordGhost(11, 7, "left", "#b7d0c7"),
+        ],
+      };
     },
-    keepHazard(hazard) {
-      return hazard.y < QUEST_GAME_CANVAS_HEIGHT + 40 && hazard.x > -40;
+    update(deltaMs) {
+      updateFordPacman(deltaMs, this);
     },
     draw(ctx) {
-      drawPixelRect(ctx, 0, 0, QUEST_GAME_CANVAS_WIDTH, QUEST_GAME_CANVAS_HEIGHT, "#1f130c");
-      drawPixelRect(ctx, 0, 0, QUEST_GAME_CANVAS_WIDTH, 112, "#2e1f16");
-      drawPixelRect(ctx, 0, 112, QUEST_GAME_CANVAS_WIDTH, 120, "#35512c");
-      drawPixelRect(ctx, 0, 232, QUEST_GAME_CANVAS_WIDTH, 88, "#6e5735");
-      drawPixelRect(ctx, 0, 320, QUEST_GAME_CANVAS_WIDTH, 40, "#9ccae8");
-      for (let i = 0; i < QUEST_GAME_CANVAS_WIDTH; i += 24) {
-        drawPixelRect(ctx, i, 320, 12, 4, i % 48 === 0 ? "#d8f3ff" : "#7ba6c6");
+      const data = questGameState.questData;
+      drawPixelRect(ctx, 0, 0, QUEST_GAME_CANVAS_WIDTH, QUEST_GAME_CANVAS_HEIGHT, "#102012");
+      drawPixelRect(ctx, 0, 0, QUEST_GAME_CANVAS_WIDTH, 78, "#1b2c1e");
+      drawPixelRect(ctx, 0, 78, QUEST_GAME_CANVAS_WIDTH, QUEST_GAME_CANVAS_HEIGHT - 78, "#1a140d");
+
+      for (let i = 0; i < 10; i += 1) {
+        drawPixelRect(ctx, 20 + i * 66, 0, 10, 80 + (i % 3) * 10, "#26351f");
+        drawPixelRect(ctx, 10 + i * 66, 24, 30, 12, "#325128");
       }
-      for (let i = 0; i < 7; i += 1) {
-        const hillX = 18 + i * 92;
-        drawPixelRect(ctx, hillX, 182 - (i % 2) * 16, 60, 34 + (i % 3) * 8, "#26351d");
+
+      FORD_MAZE.forEach((rowText, row) => {
+        [...rowText].forEach((cell, col) => {
+          const x = FORD_OFFSET_X + col * FORD_TILE;
+          const y = FORD_OFFSET_Y + row * FORD_TILE;
+          if (cell === "#") {
+            drawPixelRect(ctx, x, y, FORD_TILE, FORD_TILE, "#284423");
+            drawPixelRect(ctx, x + 4, y + 4, FORD_TILE - 8, FORD_TILE - 8, "#1d3118");
+          }
+        });
+      });
+
+      data.pellets.forEach((key) => {
+        const [col, row] = key.split(",").map(Number);
+        const center = fordCellCenter(col, row);
+        const isBig = fordMazeChar(col, row) === "o";
+        drawPixelRect(ctx, center.x - (isBig ? 5 : 3), center.y - (isBig ? 5 : 3), isBig ? 10 : 6, isBig ? 10 : 6, isBig ? "#dff4a8" : "#f4d38b");
+      });
+
+      if (data.player) {
+        drawFordPlayer(ctx, data.player);
       }
-      drawHero(ctx, questGameState.player);
-      questGameState.hazards.forEach((hazard) => drawHazardBlock(ctx, hazard));
-      drawProgressBar(ctx, this.durationMs, "FORD");
+      data.ghosts.forEach((ghost) => drawFordGhost(ctx, ghost));
+
+      const collected = data.totalPellets - data.pellets.size;
+      drawRatioBar(ctx, collected / Math.max(data.totalPellets, 1), "FORD", "#9bd36b");
     },
   },
   "Into Moria": {
@@ -721,7 +987,7 @@ export function bindModalClose() {
         return;
       }
 
-      if (["ArrowLeft", "ArrowRight", "ArrowUp", "a", "A", "d", "D", "w", "W", " ", "Space", "Spacebar"].includes(event.key)) {
+      if (["ArrowLeft", "ArrowRight", "ArrowUp", "ArrowDown", "a", "A", "d", "D", "w", "W", "s", "S", " ", "Space", "Spacebar"].includes(event.key)) {
         event.preventDefault();
         questGameState.keys.add(event.key);
       }

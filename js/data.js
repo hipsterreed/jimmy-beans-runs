@@ -74,7 +74,7 @@ export const SIDE_QUESTS = [
 export const PLAYABLE_SIDE_QUESTS = {
   "Flight to the Ford": {
     title: "Flight to the Ford",
-    description: "Guide Frodo through the Nazgul pursuit and survive long enough to reach the river.",
+    description: "Guide Frodo and Arwen through the woodland paths, gather every light, and outrun the Ringwraiths.",
   },
   "Into Moria": {
     title: "Into Moria",
