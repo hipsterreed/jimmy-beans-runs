@@ -35,19 +35,19 @@ export function Book({ chapter, onOpen }: BookProps) {
     mount.appendChild(renderer.domElement);
 
     // ---- Lighting: warm candlelight + cool rim ----
-    scene.add(new THREE.AmbientLight(0x2a1a10, 0.6));
+    scene.add(new THREE.AmbientLight(0xfff0d8, 1.1));
 
-    const candle = new THREE.PointLight(0xffb060, 2.4, 14, 1.6);
+    const candle = new THREE.PointLight(0xffd9a0, 2.2, 14, 1.6);
     candle.position.set(2.5, 3.2, 3.2);
     candle.castShadow = true;
     candle.shadow.mapSize.set(1024, 1024);
     scene.add(candle);
 
-    const fill = new THREE.DirectionalLight(0xffd9a8, 0.55);
+    const fill = new THREE.DirectionalLight(0xfff5dc, 0.85);
     fill.position.set(-3, 2, 3);
     scene.add(fill);
 
-    const rim = new THREE.PointLight(0x6a83b0, 0.6, 10);
+    const rim = new THREE.PointLight(0xc8d8ff, 0.5, 10);
     rim.position.set(-3, 1.5, -2);
     scene.add(rim);
 
@@ -75,9 +75,9 @@ export function Book({ chapter, onOpen }: BookProps) {
     const leatherMat = new THREE.MeshStandardMaterial({
       map: leatherTex,
       normalMap: leatherNormal,
-      normalScale: new THREE.Vector2(0.6, 0.6),
-      color: 0x3a1f10,
-      roughness: 0.78,
+      normalScale: new THREE.Vector2(0.55, 0.55),
+      color: 0x9a6638,
+      roughness: 0.7,
       metalness: 0.05,
     });
 
@@ -90,9 +90,9 @@ export function Book({ chapter, onOpen }: BookProps) {
       new THREE.MeshStandardMaterial({
         map: coverFrontTex,
         normalMap: leatherNormal,
-        normalScale: new THREE.Vector2(0.45, 0.45),
-        color: 0x4a2614,
-        roughness: 0.7,
+        normalScale: new THREE.Vector2(0.4, 0.4),
+        color: 0xb98050,
+        roughness: 0.65,
         metalness: 0.15,
       }), // +z outer face
       leatherMat, // -z inner face
@@ -104,14 +104,14 @@ export function Book({ chapter, onOpen }: BookProps) {
     // Page stack — a thick block textured with edge gilt on top/bottom/right and page paper on faces
     const pageEdgeMat = new THREE.MeshStandardMaterial({
       map: pageEdgeTex,
-      color: 0xd9b66a,
-      roughness: 0.55,
+      color: 0xf0d28a,
+      roughness: 0.5,
       metalness: 0.35,
     });
     const pageFaceMat = new THREE.MeshStandardMaterial({
       map: pageFaceTex,
-      color: 0xe8d3a0,
-      roughness: 0.95,
+      color: 0xfaeac0,
+      roughness: 0.9,
     });
 
     const pagesMats = [
@@ -251,15 +251,15 @@ function makeLeatherTexture(): THREE.CanvasTexture {
 
   // Base leather
   const grad = ctx.createRadialGradient(size / 2, size / 2, 100, size / 2, size / 2, size * 0.7);
-  grad.addColorStop(0, "#5a311a");
-  grad.addColorStop(1, "#2a1308");
+  grad.addColorStop(0, "#b07a48");
+  grad.addColorStop(1, "#7a4a24");
   ctx.fillStyle = grad;
   ctx.fillRect(0, 0, size, size);
 
   // Grain noise
   const img = ctx.getImageData(0, 0, size, size);
   for (let i = 0; i < img.data.length; i += 4) {
-    const n = (Math.random() - 0.5) * 36;
+    const n = (Math.random() - 0.5) * 28;
     img.data[i] = clamp(img.data[i] + n);
     img.data[i + 1] = clamp(img.data[i + 1] + n * 0.7);
     img.data[i + 2] = clamp(img.data[i + 2] + n * 0.4);
@@ -272,14 +272,14 @@ function makeLeatherTexture(): THREE.CanvasTexture {
     const y = Math.random() * size;
     const r = 1 + Math.random() * 2.5;
     const a = Math.random() * 0.18;
-    ctx.fillStyle = Math.random() < 0.5 ? `rgba(20,10,5,${a})` : `rgba(120,80,40,${a * 0.7})`;
+    ctx.fillStyle = Math.random() < 0.5 ? `rgba(60,30,12,${a})` : `rgba(200,150,90,${a * 0.7})`;
     ctx.beginPath();
     ctx.arc(x, y, r, 0, Math.PI * 2);
     ctx.fill();
   }
 
   // Cracks / scratches
-  ctx.strokeStyle = "rgba(15,8,4,0.5)";
+  ctx.strokeStyle = "rgba(50,25,10,0.4)";
   ctx.lineWidth = 0.8;
   for (let i = 0; i < 40; i++) {
     ctx.beginPath();
@@ -301,8 +301,8 @@ function makeLeatherTexture(): THREE.CanvasTexture {
     const y = Math.random() * size;
     const r = 30 + Math.random() * 60;
     const g = ctx.createRadialGradient(x, y, 0, x, y, r);
-    g.addColorStop(0, "rgba(180,130,70,0.12)");
-    g.addColorStop(1, "rgba(180,130,70,0)");
+    g.addColorStop(0, "rgba(230,180,110,0.18)");
+    g.addColorStop(1, "rgba(230,180,110,0)");
     ctx.fillStyle = g;
     ctx.beginPath();
     ctx.arc(x, y, r, 0, Math.PI * 2);
@@ -406,8 +406,8 @@ function makePageFaceTexture(): THREE.CanvasTexture {
 
   // Aged parchment
   const grad = ctx.createRadialGradient(size / 2, size / 2, 100, size / 2, size / 2, size * 0.8);
-  grad.addColorStop(0, "#f0dba5");
-  grad.addColorStop(1, "#c8a767");
+  grad.addColorStop(0, "#fbecc8");
+  grad.addColorStop(1, "#e6c98a");
   ctx.fillStyle = grad;
   ctx.fillRect(0, 0, size, size);
 
@@ -428,7 +428,7 @@ function makePageFaceTexture(): THREE.CanvasTexture {
   // Edge darkening
   const edge = ctx.createRadialGradient(size / 2, size / 2, size * 0.3, size / 2, size / 2, size * 0.75);
   edge.addColorStop(0, "rgba(0,0,0,0)");
-  edge.addColorStop(1, "rgba(60,30,10,0.55)");
+  edge.addColorStop(1, "rgba(120,75,30,0.4)");
   ctx.fillStyle = edge;
   ctx.fillRect(0, 0, size, size);
 
@@ -447,14 +447,14 @@ function makeCoverFrontTexture(title: string): THREE.CanvasTexture {
 
   // Leather base — same recipe as makeLeatherTexture but stretched
   const grad = ctx.createRadialGradient(w / 2, h / 2, 80, w / 2, h / 2, h * 0.7);
-  grad.addColorStop(0, "#5a311a");
-  grad.addColorStop(1, "#28120a");
+  grad.addColorStop(0, "#b07a48");
+  grad.addColorStop(1, "#7a4824");
   ctx.fillStyle = grad;
   ctx.fillRect(0, 0, w, h);
 
   const img = ctx.getImageData(0, 0, w, h);
   for (let i = 0; i < img.data.length; i += 4) {
-    const n = (Math.random() - 0.5) * 30;
+    const n = (Math.random() - 0.5) * 24;
     img.data[i] = clamp(img.data[i] + n);
     img.data[i + 1] = clamp(img.data[i + 1] + n * 0.7);
     img.data[i + 2] = clamp(img.data[i + 2] + n * 0.4);
@@ -462,7 +462,7 @@ function makeCoverFrontTexture(title: string): THREE.CanvasTexture {
   ctx.putImageData(img, 0, 0);
 
   // Decorative gilt border
-  ctx.strokeStyle = "#d9b066";
+  ctx.strokeStyle = "#f0c878";
   ctx.lineWidth = 4;
   ctx.shadowColor = "rgba(0,0,0,0.6)";
   ctx.shadowBlur = 6;
@@ -473,7 +473,7 @@ function makeCoverFrontTexture(title: string): THREE.CanvasTexture {
   ctx.strokeRect(58, 58, w - 116, h - 116);
 
   // Corner flourishes
-  ctx.fillStyle = "#d9b066";
+  ctx.fillStyle = "#f0c878";
   const corners: [number, number][] = [
     [56, 56],
     [w - 56, 56],
@@ -486,15 +486,15 @@ function makeCoverFrontTexture(title: string): THREE.CanvasTexture {
     ctx.fill();
     ctx.beginPath();
     ctx.arc(cx, cy, 5, 0, Math.PI * 2);
-    ctx.fillStyle = "#3a1f0c";
+    ctx.fillStyle = "#7a4824";
     ctx.fill();
-    ctx.fillStyle = "#d9b066";
+    ctx.fillStyle = "#f0c878";
   }
 
   // Center emblem — a simple sunburst circle
   ctx.shadowBlur = 8;
   ctx.translate(w / 2, h / 2);
-  ctx.strokeStyle = "#d9b066";
+  ctx.strokeStyle = "#f0c878";
   ctx.lineWidth = 3;
   ctx.beginPath();
   ctx.arc(0, 0, 90, 0, Math.PI * 2);
@@ -513,7 +513,7 @@ function makeCoverFrontTexture(title: string): THREE.CanvasTexture {
 
   // Title
   ctx.shadowBlur = 4;
-  ctx.fillStyle = "#e9c98a";
+  ctx.fillStyle = "#fbe2a6";
   ctx.font = `bold 48px "Cinzel","Cormorant Garamond",Georgia,serif`;
   ctx.textAlign = "center";
   ctx.textBaseline = "middle";
@@ -521,13 +521,13 @@ function makeCoverFrontTexture(title: string): THREE.CanvasTexture {
   ctx.fillText("OF RUNS", w / 2, h * 0.3);
 
   ctx.font = `italic 30px "Cormorant Garamond",Georgia,serif`;
-  ctx.fillStyle = "#c79a55";
+  ctx.fillStyle = "#e2b56a";
   const safeTitle = title.length > 36 ? title.slice(0, 33) + "..." : title;
   ctx.fillText(safeTitle, w / 2, h * 0.78);
 
   // Random scratches on top
   ctx.shadowBlur = 0;
-  ctx.strokeStyle = "rgba(15,8,4,0.55)";
+  ctx.strokeStyle = "rgba(50,25,10,0.4)";
   ctx.lineWidth = 0.7;
   for (let i = 0; i < 60; i++) {
     ctx.beginPath();

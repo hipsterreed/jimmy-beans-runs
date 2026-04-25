@@ -1,8 +1,8 @@
 .landing-shell {
   min-height: 100vh;
   background:
-    radial-gradient(ellipse at 50% 30%, #3a2412 0%, #1a0d05 55%, #060302 100%);
-  color: #f3e7cf;
+    radial-gradient(ellipse at 50% 30%, #f0d9a8 0%, #d4b07c 55%, #a8804a 100%);
+  color: #3a2412;
   font-family: "Cinzel", "Cormorant Garamond", "Georgia", serif;
   display: flex;
   align-items: center;
