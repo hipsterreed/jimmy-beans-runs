@@ -5,9 +5,11 @@ import { RosterPanel } from "./components/RosterPanel";
 import { SetupPanel } from "./components/SetupPanel";
 import { SideQuestsPanel } from "./components/SideQuestsPanel";
 import { DeleteRunModal } from "./components/modals/DeleteRunModal";
-import { PlayableQuestPlaceholderModal } from "./components/modals/PlayableQuestPlaceholderModal";
+import { EndingModal } from "./components/modals/EndingModal";
+import { QuestGameModal } from "./components/modals/QuestGameModal";
 import { ResetQuestModal } from "./components/modals/ResetQuestModal";
 import { RunnerModal } from "./components/modals/RunnerModal";
+import { useEndingSync } from "./hooks/useEndingSync";
 import { useFirestoreQuest } from "./hooks/useFirestoreQuest";
 import { useQuestStore } from "./store/questStore";
 
@@ -18,6 +20,7 @@ export default function App() {
   const toggleDevMode = useQuestStore((s) => s.toggleDevMode);
 
   const { configured } = useFirestoreQuest();
+  useEndingSync();
 
   const state = { runners, runs };
 
@@ -33,7 +36,8 @@ export default function App() {
       <RunnerModal />
       <DeleteRunModal />
       <ResetQuestModal />
-      <PlayableQuestPlaceholderModal />
+      <QuestGameModal />
+      <EndingModal />
     </main>
   );
 }

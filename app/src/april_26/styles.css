@@ -516,7 +516,7 @@ label {
   position: relative;
   height: 160px;
   border: 2px solid var(--border);
-  background-image: url("/assets/journey.png");
+  background-image: url("/april_26/assets/journey.png");
   background-size: 100% 100%;
   background-repeat: no-repeat;
   overflow: hidden;

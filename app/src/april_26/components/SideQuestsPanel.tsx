@@ -12,7 +12,7 @@ type Props = {
 
 export function SideQuestsPanel({ state, devMode }: Props) {
   const onResetQuest = useQuestStore((s) => s.openResetModal);
-  const onPlayQuest = useQuestStore((s) => s.openPlayableQuestPlaceholder);
+  const onPlayQuest = useQuestStore((s) => s.openQuestGame);
 
   const steps = buildMissionSteps(totalGoalMiles(state));
   const totalMiles = combinedMilesFor(state);

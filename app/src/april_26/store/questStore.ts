@@ -23,7 +23,8 @@ export type ModalState = {
   runner: { mode: "add" | "edit"; runnerId?: string } | null;
   deleteRun: { runId: string; miles: number; date: string } | null;
   reset: boolean;
-  playableQuestPlaceholder: { questTitle: string } | null;
+  questGame: { questTitle: string } | null;
+  ending: { auto: boolean } | null;
 };
 
 type QuestStore = {
@@ -42,8 +43,10 @@ type QuestStore = {
   closeDeleteRunModal: () => void;
   openResetModal: () => void;
   closeResetModal: () => void;
-  openPlayableQuestPlaceholder: (questTitle: string) => void;
-  closePlayableQuestPlaceholder: () => void;
+  openQuestGame: (questTitle: string) => void;
+  closeQuestGame: () => void;
+  openEndingModal: (auto: boolean) => void;
+  closeEndingModal: () => void;
 };
 
 export const useQuestStore = create<QuestStore>((set) => ({
@@ -55,7 +58,8 @@ export const useQuestStore = create<QuestStore>((set) => ({
     runner: null,
     deleteRun: null,
     reset: false,
-    playableQuestPlaceholder: null,
+    questGame: null,
+    ending: null,
   },
   setRunners: (runners) => set({ runners }),
   setRuns: (runs) => set({ runs }),
@@ -78,10 +82,12 @@ export const useQuestStore = create<QuestStore>((set) => ({
     set((state) => ({ modals: { ...state.modals, reset: true } })),
   closeResetModal: () =>
     set((state) => ({ modals: { ...state.modals, reset: false } })),
-  openPlayableQuestPlaceholder: (questTitle) =>
-    set((state) => ({
-      modals: { ...state.modals, playableQuestPlaceholder: { questTitle } },
-    })),
-  closePlayableQuestPlaceholder: () =>
-    set((state) => ({ modals: { ...state.modals, playableQuestPlaceholder: null } })),
+  openQuestGame: (questTitle) =>
+    set((state) => ({ modals: { ...state.modals, questGame: { questTitle } } })),
+  closeQuestGame: () =>
+    set((state) => ({ modals: { ...state.modals, questGame: null } })),
+  openEndingModal: (auto) =>
+    set((state) => ({ modals: { ...state.modals, ending: { auto } } })),
+  closeEndingModal: () =>
+    set((state) => ({ modals: { ...state.modals, ending: null } })),
 }));

@@ -27,21 +27,23 @@ export const DEFAULT_RUNNERS = [
 ] as const;
 
 export const CUSTOM_RUNNER_IMAGES: Record<string, string> = {
-  "runner-sam": "/assets/hipster_sam.jpg",
-  "frodo bean": "/assets/frodo_bean.JPG",
-  breezy: "/assets/breezy.JPG",
-  "con bombadil": "/assets/con_bombadil.JPG",
-  drewid: "/assets/drewid.JPG",
-  jackagorn: "/assets/jackagorn.JPG",
-  "merry molly": "/assets/merry_molly.JPG",
-  "presto baggins": "/assets/presto_baggins.JPG",
-  rushington: "/assets/rushington.JPG",
-  "tanner the treacherous": "/assets/tanner_the_treacherous.JPG",
-  mason: "/assets/mason.JPG",
+  "runner-sam": "/april_26/assets/hipster_sam.jpg",
+  "frodo bean": "/april_26/assets/frodo_bean.JPG",
+  breezy: "/april_26/assets/breezy.JPG",
+  "con bombadil": "/april_26/assets/con_bombadil.JPG",
+  drewid: "/april_26/assets/drewid.JPG",
+  jackagorn: "/april_26/assets/jackagorn.JPG",
+  "merry molly": "/april_26/assets/merry_molly.JPG",
+  "presto baggins": "/april_26/assets/presto_baggins.JPG",
+  rushington: "/april_26/assets/rushington.JPG",
+  "tanwise gamgee": "/april_26/assets/tanwise_gamgee.png",
+  "tamwise gamgee": "/april_26/assets/tanwise_gamgee.png",
+  "tanner the treacherous": "/april_26/assets/tanner_the_treacherous.JPG",
+  mason: "/april_26/assets/mason.JPG",
 };
 
 export const CUSTOM_CHARACTER_IMAGES: Record<string, string> = {
-  gollum: "/assets/mason.JPG",
+  gollum: "/april_26/assets/mason.JPG",
 };
 
 export const SIDE_QUESTS = [
