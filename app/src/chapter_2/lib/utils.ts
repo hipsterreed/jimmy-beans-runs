@@ -18,6 +18,7 @@ export function characterFor(key: string): Character {
 
 export function customImageForRunner(runner: Runner): string | null {
   return (
+    runner.imageUrl ||
     CUSTOM_RUNNER_IMAGES[runner.id] ||
     CUSTOM_RUNNER_IMAGES[normalizeRunnerKey(runner.name)] ||
     CUSTOM_CHARACTER_IMAGES[runner.characterKey] ||

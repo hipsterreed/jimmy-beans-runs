@@ -64,6 +64,7 @@ export type AddParticipantInput = {
   displayName: string;
   characterKey: string;
   goalMiles: number;
+  imageUrl?: string;
 };
 
 export type UpdateParticipantInput = {
@@ -71,12 +72,14 @@ export type UpdateParticipantInput = {
   displayName: string;
   characterKey: string;
   goalMiles: number;
+  imageUrl?: string;
 };
 
 export type ChapterApi = {
   ensureDefaultParticipants: () => Promise<void>;
   addParticipant: (input: AddParticipantInput) => Promise<void>;
   updateParticipant: (input: UpdateParticipantInput) => Promise<void>;
+  deleteParticipant: (userId: string) => Promise<void>;
   addRun: (userId: string, miles: number, runDate: string) => Promise<void>;
   deleteRun: (runId: string) => Promise<void>;
   resetChapter: () => Promise<void>;
@@ -153,22 +156,30 @@ export function createChapterApi(config: ChapterApiConfig): ChapterApi {
     async addParticipant(input) {
       const userId = input.userId || generateUserId(input.displayName);
       await upsertUser(userId, input.displayName);
-      await setDoc(participantDoc(userId), {
+      const payload: ParticipantDoc = {
         userId,
         displayName: input.displayName,
         characterKey: input.characterKey,
         goalMiles: input.goalMiles,
         createdAtMs: Date.now(),
-      } satisfies ParticipantDoc);
+      };
+      if (input.imageUrl) payload.imageUrl = input.imageUrl;
+      await setDoc(participantDoc(userId), payload);
     },
 
     async updateParticipant(input) {
       await upsertUser(input.userId, input.displayName);
-      await updateDoc(participantDoc(input.userId), {
+      const payload: Partial<ParticipantDoc> = {
         displayName: input.displayName,
         characterKey: input.characterKey,
         goalMiles: input.goalMiles,
-      });
+      };
+      if (input.imageUrl !== undefined) payload.imageUrl = input.imageUrl;
+      await updateDoc(participantDoc(input.userId), payload);
+    },
+
+    async deleteParticipant(userId) {
+      await deleteDoc(participantDoc(userId));
     },
 
     async addRun(userId, miles, runDate) {
@@ -195,13 +206,15 @@ export function createChapterApi(config: ChapterApiConfig): ChapterApi {
         (snapshot) => {
           const participants: Runner[] = snapshot.docs.map((d) => {
             const data = d.data() as ParticipantDoc;
-            return {
+            const runner: Runner = {
               id: d.id,
               name: data.displayName || "Unnamed Runner",
               characterKey: data.characterKey || defaultCharacterKey,
               goalMiles: Number(data.goalMiles) || defaultParticipantGoal,
               createdAtMs: Number(data.createdAtMs) || Date.now(),
             };
+            if (data.imageUrl) runner.imageUrl = data.imageUrl;
+            return runner;
           });
           onParticipants(participants);
           onSyncState({ message: connectedMessage, status: "connected" });

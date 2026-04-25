@@ -3,6 +3,7 @@ import Landing from "./landing/Landing";
 
 const Chapter1 = lazy(() => import("./chapter_1/App"));
 const Chapter2 = lazy(() => import("./chapter_2/App"));
+const AdminApp = lazy(() => import("./admin/AdminApp"));
 
 function readRoute(): string {
   return window.location.hash.replace(/^#/, "");
@@ -28,6 +29,13 @@ export default function AppRouter() {
     return (
       <Suspense fallback={null}>
         <Chapter2 />
+      </Suspense>
+    );
+  }
+  if (route === "admin") {
+    return (
+      <Suspense fallback={null}>
+        <AdminApp />
       </Suspense>
     );
   }

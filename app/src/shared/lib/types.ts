@@ -4,6 +4,7 @@ export type Runner = {
   characterKey: string;
   goalMiles: number;
   createdAtMs: number;
+  imageUrl?: string;
 };
 
 export type Run = {
@@ -82,6 +83,24 @@ export type ParticipantDoc = {
   displayName?: string;
   characterKey?: string;
   goalMiles?: number;
+  createdAtMs?: number;
+  imageUrl?: string;
+};
+
+export type ChapterCharacter = {
+  key: string;
+  label: string;
+  flavor: string;
+  accent: string;
+  imageUrl?: string;
+  createdAtMs: number;
+};
+
+export type ChapterCharacterDoc = {
+  label?: string;
+  flavor?: string;
+  accent?: string;
+  imageUrl?: string;
   createdAtMs?: number;
 };
 
