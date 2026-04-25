@@ -21,8 +21,8 @@ export function Book({ chapter, onOpen }: BookProps) {
     const scene = new THREE.Scene();
     scene.background = null;
 
-    const camera = new THREE.PerspectiveCamera(38, 1, 0.1, 100);
-    camera.position.set(0, 1.6, 6.4);
+    const camera = new THREE.PerspectiveCamera(42, 1, 0.1, 100);
+    camera.position.set(0, 1.6, 8.2);
     camera.lookAt(0, 0, 0);
 
     const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
@@ -57,8 +57,18 @@ export function Book({ chapter, onOpen }: BookProps) {
     const pageEdgeTex = makePageEdgeTexture();
     const pageFaceTex = makePageFaceTexture();
     const coverFrontTex = makeCoverFrontTexture(chapter.title);
+    const innerCoverTex = makeInnerCoverTexture();
+    const titlePageTex = makeTitlePageTexture(chapter);
 
-    [leatherTex, leatherNormal, pageEdgeTex, pageFaceTex, coverFrontTex].forEach((t) => {
+    [
+      leatherTex,
+      leatherNormal,
+      pageEdgeTex,
+      pageFaceTex,
+      coverFrontTex,
+      innerCoverTex,
+      titlePageTex,
+    ].forEach((t) => {
       t.anisotropy = 8;
     });
 
@@ -81,6 +91,12 @@ export function Book({ chapter, onOpen }: BookProps) {
       metalness: 0.05,
     });
 
+    const innerCoverMat = new THREE.MeshStandardMaterial({
+      map: innerCoverTex,
+      color: 0xfff4d6,
+      roughness: 0.95,
+    });
+
     // Front cover with gilt title on the outer face
     const frontCoverMats = [
       leatherMat, // +x edge
@@ -95,7 +111,7 @@ export function Book({ chapter, onOpen }: BookProps) {
         roughness: 0.65,
         metalness: 0.15,
       }), // +z outer face
-      leatherMat, // -z inner face
+      innerCoverMat, // -z inner face (visible when book is open)
     ];
 
     // Back cover (no embossed title)
@@ -114,12 +130,18 @@ export function Book({ chapter, onOpen }: BookProps) {
       roughness: 0.9,
     });
 
+    const titlePageMat = new THREE.MeshStandardMaterial({
+      map: titlePageTex,
+      color: 0xfff4d6,
+      roughness: 0.92,
+    });
+
     const pagesMats = [
       pageEdgeMat, // +x (fore-edge — gilt)
       pageEdgeMat, // -x (spine side, hidden inside)
       pageEdgeMat, // +y top edge — gilt
       pageEdgeMat, // -y bottom edge — gilt
-      pageFaceMat, // +z (top face — when cover is open)
+      titlePageMat, // +z (top face — first page revealed when book opens)
       pageFaceMat, // -z (bottom face)
     ];
 
@@ -195,10 +217,11 @@ export function Book({ chapter, onOpen }: BookProps) {
       book.position.y = Math.sin(t * 0.6) * 0.05;
       book.rotation.z = Math.sin(t * 0.4) * 0.012;
 
-      // Cover opens once
+      // Cover opens once; slide book right as it opens so the open spread stays centered
       const p = Math.min(Math.max((t - OPEN_DELAY_S) / OPEN_DURATION_S, 0), 1);
       const eased = easeInOutCubic(p);
       coverPivot.rotation.y = -eased * Math.PI * 0.86;
+      book.position.x = eased * 1.18;
 
       // Candle flicker
       candle.intensity = 2.2 + Math.sin(t * 9.3) * 0.18 + Math.sin(t * 3.7) * 0.12;
@@ -219,12 +242,18 @@ export function Book({ chapter, onOpen }: BookProps) {
       mount.removeChild(renderer.domElement);
       renderer.dispose();
       [pagesGeo, spineGeo, backCoverGeo, frontCoverGeo, shadowGeo].forEach((g) => g.dispose());
-      [leatherMat, pageEdgeMat, pageFaceMat, shadowMat, ...frontCoverMats].forEach((m) =>
-        m.dispose()
+      [leatherMat, pageEdgeMat, pageFaceMat, titlePageMat, shadowMat, ...frontCoverMats].forEach(
+        (m) => m.dispose()
       );
-      [leatherTex, leatherNormal, pageEdgeTex, pageFaceTex, coverFrontTex].forEach((t) =>
-        t.dispose()
-      );
+      [
+        leatherTex,
+        leatherNormal,
+        pageEdgeTex,
+        pageFaceTex,
+        coverFrontTex,
+        innerCoverTex,
+        titlePageTex,
+      ].forEach((t) => t.dispose());
     };
   }, [chapter.title]);
 
@@ -546,6 +575,198 @@ function makeCoverFrontTexture(title: string): THREE.CanvasTexture {
   const tex = new THREE.CanvasTexture(c);
   tex.colorSpace = THREE.SRGBColorSpace;
   return tex;
+}
+
+function paintParchment(ctx: CanvasRenderingContext2D, w: number, h: number) {
+  const grad = ctx.createRadialGradient(w / 2, h / 2, 80, w / 2, h / 2, Math.max(w, h) * 0.75);
+  grad.addColorStop(0, "#fdf0ce");
+  grad.addColorStop(1, "#ecd29a");
+  ctx.fillStyle = grad;
+  ctx.fillRect(0, 0, w, h);
+
+  // Foxing
+  for (let i = 0; i < 70; i++) {
+    const x = Math.random() * w;
+    const y = Math.random() * h;
+    const r = 4 + Math.random() * 22;
+    const g = ctx.createRadialGradient(x, y, 0, x, y, r);
+    g.addColorStop(0, `rgba(150,95,40,${0.1 + Math.random() * 0.18})`);
+    g.addColorStop(1, "rgba(150,95,40,0)");
+    ctx.fillStyle = g;
+    ctx.beginPath();
+    ctx.arc(x, y, r, 0, Math.PI * 2);
+    ctx.fill();
+  }
+
+  // Edge darkening
+  const edge = ctx.createRadialGradient(w / 2, h / 2, Math.min(w, h) * 0.3, w / 2, h / 2, Math.max(w, h) * 0.7);
+  edge.addColorStop(0, "rgba(0,0,0,0)");
+  edge.addColorStop(1, "rgba(120,75,30,0.35)");
+  ctx.fillStyle = edge;
+  ctx.fillRect(0, 0, w, h);
+}
+
+function makeInnerCoverTexture(): THREE.CanvasTexture {
+  const w = 768;
+  const h = 1024;
+  const c = document.createElement("canvas");
+  c.width = w;
+  c.height = h;
+  const ctx = c.getContext("2d")!;
+
+  paintParchment(ctx, w, h);
+
+  // Decorative double border
+  ctx.strokeStyle = "rgba(110,70,30,0.55)";
+  ctx.lineWidth = 2;
+  ctx.strokeRect(56, 70, w - 112, h - 140);
+  ctx.lineWidth = 0.8;
+  ctx.strokeRect(70, 84, w - 140, h - 168);
+
+  // Centered ornament
+  ctx.translate(w / 2, h / 2);
+  ctx.strokeStyle = "rgba(120,75,30,0.7)";
+  ctx.fillStyle = "rgba(120,75,30,0.7)";
+  ctx.lineWidth = 1.5;
+  ctx.beginPath();
+  ctx.arc(0, 0, 70, 0, Math.PI * 2);
+  ctx.stroke();
+  ctx.beginPath();
+  ctx.arc(0, 0, 6, 0, Math.PI * 2);
+  ctx.fill();
+  for (let i = 0; i < 8; i++) {
+    const a = (i / 8) * Math.PI * 2;
+    ctx.beginPath();
+    ctx.moveTo(Math.cos(a) * 14, Math.sin(a) * 14);
+    ctx.lineTo(Math.cos(a) * 60, Math.sin(a) * 60);
+    ctx.stroke();
+    ctx.beginPath();
+    ctx.arc(Math.cos(a) * 70, Math.sin(a) * 70, 4, 0, Math.PI * 2);
+    ctx.fill();
+  }
+  ctx.setTransform(1, 0, 0, 1, 0, 0);
+
+  // Inscription
+  ctx.fillStyle = "rgba(80,45,15,0.85)";
+  ctx.textAlign = "center";
+  ctx.textBaseline = "middle";
+  ctx.font = `italic 30px "Cormorant Garamond",Georgia,serif`;
+  ctx.fillText("of the runs", w / 2, h * 0.78);
+  ctx.fillText("and their adventures", w / 2, h * 0.83);
+
+  const tex = new THREE.CanvasTexture(c);
+  tex.colorSpace = THREE.SRGBColorSpace;
+  return tex;
+}
+
+function makeTitlePageTexture(chapter: ChapterMeta): THREE.CanvasTexture {
+  const w = 768;
+  const h = 1024;
+  const c = document.createElement("canvas");
+  c.width = w;
+  c.height = h;
+  const ctx = c.getContext("2d")!;
+
+  paintParchment(ctx, w, h);
+
+  // Top flourish
+  ctx.strokeStyle = "rgba(110,70,30,0.7)";
+  ctx.lineWidth = 1.5;
+  ctx.beginPath();
+  ctx.moveTo(w * 0.2, h * 0.18);
+  ctx.lineTo(w * 0.8, h * 0.18);
+  ctx.stroke();
+  ctx.beginPath();
+  ctx.arc(w / 2, h * 0.18, 6, 0, Math.PI * 2);
+  ctx.fillStyle = "rgba(110,70,30,0.7)";
+  ctx.fill();
+
+  // "Chapter N"
+  ctx.textAlign = "center";
+  ctx.textBaseline = "middle";
+  ctx.fillStyle = "rgba(80,45,15,0.9)";
+  ctx.font = `28px "Cinzel","Cormorant Garamond",Georgia,serif`;
+  const roman = romanNumeral(chapter.number);
+  ctx.fillText(`CHAPTER ${roman}`, w / 2, h * 0.28);
+
+  // Divider
+  ctx.strokeStyle = "rgba(110,70,30,0.6)";
+  ctx.lineWidth = 1;
+  ctx.beginPath();
+  ctx.moveTo(w * 0.3, h * 0.34);
+  ctx.lineTo(w * 0.7, h * 0.34);
+  ctx.stroke();
+
+  // Title — wrap if long
+  ctx.fillStyle = "rgba(60,30,8,0.95)";
+  ctx.font = `bold 56px "Cinzel","Cormorant Garamond",Georgia,serif`;
+  const titleLines = wrapText(ctx, chapter.title.toUpperCase(), w - 160);
+  const titleStartY = h * 0.45 - ((titleLines.length - 1) * 60) / 2;
+  titleLines.forEach((line, i) => {
+    ctx.fillText(line, w / 2, titleStartY + i * 64);
+  });
+
+  // Subtitle
+  ctx.fillStyle = "rgba(100,55,20,0.9)";
+  ctx.font = `italic 32px "Cormorant Garamond",Georgia,serif`;
+  ctx.fillText(chapter.subtitle, w / 2, h * 0.66);
+
+  // Bottom flourish
+  ctx.strokeStyle = "rgba(110,70,30,0.7)";
+  ctx.lineWidth = 1.5;
+  ctx.beginPath();
+  ctx.moveTo(w * 0.3, h * 0.78);
+  ctx.lineTo(w * 0.7, h * 0.78);
+  ctx.stroke();
+  ctx.fillStyle = "rgba(110,70,30,0.7)";
+  ctx.beginPath();
+  ctx.arc(w / 2, h * 0.78, 5, 0, Math.PI * 2);
+  ctx.fill();
+
+  // "Open" hint
+  ctx.fillStyle = "rgba(80,45,15,0.55)";
+  ctx.font = `20px "Cormorant Garamond",Georgia,serif`;
+  ctx.fillText(chapter.available ? "— click to begin —" : "— coming soon —", w / 2, h * 0.88);
+
+  const tex = new THREE.CanvasTexture(c);
+  tex.colorSpace = THREE.SRGBColorSpace;
+  return tex;
+}
+
+function wrapText(ctx: CanvasRenderingContext2D, text: string, maxWidth: number): string[] {
+  const words = text.split(/\s+/);
+  const lines: string[] = [];
+  let current = "";
+  for (const word of words) {
+    const test = current ? `${current} ${word}` : word;
+    if (ctx.measureText(test).width > maxWidth && current) {
+      lines.push(current);
+      current = word;
+    } else {
+      current = test;
+    }
+  }
+  if (current) lines.push(current);
+  return lines;
+}
+
+function romanNumeral(n: number): string {
+  const map: Array<[number, string]> = [
+    [10, "X"],
+    [9, "IX"],
+    [5, "V"],
+    [4, "IV"],
+    [1, "I"],
+  ];
+  let out = "";
+  let v = n;
+  for (const [val, sym] of map) {
+    while (v >= val) {
+      out += sym;
+      v -= val;
+    }
+  }
+  return out || `${n}`;
 }
 
 function clamp(v: number): number {
