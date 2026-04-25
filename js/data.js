@@ -34,6 +34,8 @@ export const CUSTOM_RUNNER_IMAGES = {
   "merry molly": "./assets/merry_molly.JPG",
   "presto baggins": "./assets/presto_baggins.JPG",
   rushington: "./assets/rushington.JPG",
+  "tanwise gamgee": "./assets/tanwise_gamgee.png",
+  "tamwise gamgee": "./assets/tanwise_gamgee.png",
   "tanner the treacherous": "./assets/tanner_the_treacherous.JPG",
   mason: "./assets/mason.JPG",
 };

@@ -548,15 +548,13 @@ export function syncEndingSequence(forcePreview = false) {
     endingVideoState.shownForGoalKey = null;
   }
 
-  if (!state.devMode) {
-    if (elements.endingModal.classList.contains("is-open")) {
-      closeEndingModal();
-    }
+  if (state.devMode && (forcePreview || !complete)) {
+    openEndingModal(false);
     return;
   }
 
-  if (forcePreview || !complete) {
-    openEndingModal(false);
+  if (!state.devMode && elements.endingModal.classList.contains("is-open") && !complete) {
+    closeEndingModal();
     return;
   }
 
