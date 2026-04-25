@@ -15,12 +15,19 @@
   width: min(1400px, 100vw);
   height: 100vh;
   cursor: default;
-  touch-action: manipulation;
+  touch-action: pan-y;
   user-select: none;
+  -webkit-user-select: none;
+  -webkit-touch-callout: none;
 }
 
 .book-canvas.is-ready {
-  cursor: pointer;
+  cursor: grab;
+}
+
+.book-canvas.is-ready.is-dragging,
+.book-canvas.is-ready:active {
+  cursor: grabbing;
 }
 
 .book-canvas canvas {

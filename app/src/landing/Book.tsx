@@ -141,7 +141,7 @@ export function Book({ chapter, onOpen }: BookProps) {
       pageEdgeMat, // -x (spine side, hidden inside)
       pageEdgeMat, // +y top edge — gilt
       pageEdgeMat, // -y bottom edge — gilt
-      titlePageMat, // +z (top face — first page revealed when book opens)
+      pageFaceMat, // +z (top face of stack — visible behind the flip page)
       pageFaceMat, // -z (bottom face)
     ];
 
@@ -151,6 +151,32 @@ export function Book({ chapter, onOpen }: BookProps) {
     pages.castShadow = true;
     pages.receiveShadow = true;
     book.add(pages);
+
+    // Flippable title page — sits just above the page stack, pivoted at the spine.
+    // Front face shows the chapter title; user can drag it from right to left.
+    const flipPageGeo = new THREE.BoxGeometry(W - 0.14, H - 0.2, 0.01);
+    const flipBackMat = new THREE.MeshStandardMaterial({
+      map: pageFaceTex,
+      color: 0xfaeac0,
+      roughness: 0.95,
+    });
+    const flipPageMats = [
+      pageEdgeMat, // +x
+      pageEdgeMat, // -x
+      pageEdgeMat, // +y
+      pageEdgeMat, // -y
+      titlePageMat, // +z front (visible up after cover opens)
+      flipBackMat, // -z back (visible after page is turned)
+    ];
+    const flipPivot = new THREE.Group();
+    flipPivot.position.set(-(W - 0.14) / 2 + 0.04, 0, T / 2 + 0.012);
+    book.add(flipPivot);
+
+    const flipPage = new THREE.Mesh(flipPageGeo, flipPageMats);
+    flipPage.position.set((W - 0.14) / 2, 0, 0);
+    flipPage.castShadow = true;
+    flipPage.receiveShadow = true;
+    flipPivot.add(flipPage);
 
     // Spine — curved-ish via a slightly wider box behind the pages
     const spineGeo = new THREE.BoxGeometry(0.18, H, T + 2 * C);
@@ -190,22 +216,76 @@ export function Book({ chapter, onOpen }: BookProps) {
     scene.add(shadowPlane);
 
     // ---- Sizing ----
+    // The opened book spans ~5.4 units wide. Pull the camera back on narrow
+    // (mobile / portrait) viewports so it never gets cut off horizontally.
     const resize = () => {
       const w = mount.clientWidth;
       const h = mount.clientHeight;
       if (!w || !h) return;
       renderer.setSize(w, h, false);
-      camera.aspect = w / h;
+      const aspect = w / h;
+      camera.aspect = aspect;
+      const halfVFov = THREE.MathUtils.degToRad(camera.fov) / 2;
+      const requiredZForWidth = 3.1 / (Math.tan(halfVFov) * aspect);
+      const requiredZForHeight = 2.2 / Math.tan(halfVFov);
+      camera.position.z = Math.max(8.2, requiredZForWidth, requiredZForHeight);
       camera.updateProjectionMatrix();
     };
     resize();
     const ro = new ResizeObserver(resize);
     ro.observe(mount);
 
+    // ---- Drag-to-flip state ----
+    let coverFullyOpen = false;
+    let pageRotation = 0; // 0 = lying on right, -π = fully flipped to left
+    let pageTarget: number | null = null; // when set, lerp toward it
+    let isDragging = false;
+    let dragStartX = 0;
+    let dragStartRotation = 0;
+    let dragMoved = false;
+    let navigateFired = false;
+
+    const onPointerDown = (e: PointerEvent) => {
+      if (!coverFullyOpen || navigateFired || !chapter.available) return;
+      isDragging = true;
+      dragStartX = e.clientX;
+      dragStartRotation = pageRotation;
+      dragMoved = false;
+      pageTarget = null;
+      mount.classList.add("is-dragging");
+      (e.target as Element).setPointerCapture?.(e.pointerId);
+    };
+
+    const onPointerMove = (e: PointerEvent) => {
+      if (!isDragging) return;
+      const dx = e.clientX - dragStartX;
+      if (Math.abs(dx) > 4) dragMoved = true;
+      const rect = mount.getBoundingClientRect();
+      const factor = -Math.PI / Math.max(200, rect.width * 0.4);
+      pageRotation = Math.min(0, Math.max(-Math.PI, dragStartRotation + dx * factor));
+    };
+
+    const onPointerUp = () => {
+      if (!isDragging) return;
+      isDragging = false;
+      mount.classList.remove("is-dragging");
+      if (!dragMoved) {
+        pageTarget = -Math.PI;
+      } else if (pageRotation < -Math.PI * 0.4) {
+        pageTarget = -Math.PI;
+      } else {
+        pageTarget = 0;
+      }
+    };
+
+    mount.addEventListener("pointerdown", onPointerDown);
+    window.addEventListener("pointermove", onPointerMove);
+    window.addEventListener("pointerup", onPointerUp);
+    window.addEventListener("pointercancel", onPointerUp);
+
     // ---- Animation loop ----
     const start = performance.now();
     let raf = 0;
-    let openedFired = false;
 
     const easeInOutCubic = (x: number) =>
       x < 0.5 ? 4 * x * x * x : 1 - Math.pow(-2 * x + 2, 3) / 2;
@@ -226,10 +306,28 @@ export function Book({ chapter, onOpen }: BookProps) {
       // Candle flicker
       candle.intensity = 2.2 + Math.sin(t * 9.3) * 0.18 + Math.sin(t * 3.7) * 0.12;
 
-      if (!openedFired && p >= 1) {
-        openedFired = true;
+      if (!coverFullyOpen && p >= 1) {
+        coverFullyOpen = true;
         setReady(true);
       }
+
+      // Animate page toward target rotation when not actively dragging
+      if (!isDragging && pageTarget !== null) {
+        pageRotation += (pageTarget - pageRotation) * 0.14;
+        if (Math.abs(pageRotation - pageTarget) < 0.005) {
+          pageRotation = pageTarget;
+          if (pageTarget <= -Math.PI + 0.001 && !navigateFired) {
+            navigateFired = true;
+            window.setTimeout(() => onOpen(), 220);
+          }
+          pageTarget = null;
+        }
+      }
+      flipPivot.rotation.y = pageRotation;
+
+      // Subtle lift while flipping so the page arcs above the spine
+      const flipAmt = Math.sin(Math.min(Math.abs(pageRotation), Math.PI));
+      flipPage.position.z = flipAmt * 0.06;
 
       renderer.render(scene, camera);
       raf = requestAnimationFrame(tick);
@@ -239,12 +337,24 @@ export function Book({ chapter, onOpen }: BookProps) {
     return () => {
       cancelAnimationFrame(raf);
       ro.disconnect();
+      mount.removeEventListener("pointerdown", onPointerDown);
+      window.removeEventListener("pointermove", onPointerMove);
+      window.removeEventListener("pointerup", onPointerUp);
+      window.removeEventListener("pointercancel", onPointerUp);
       mount.removeChild(renderer.domElement);
       renderer.dispose();
-      [pagesGeo, spineGeo, backCoverGeo, frontCoverGeo, shadowGeo].forEach((g) => g.dispose());
-      [leatherMat, pageEdgeMat, pageFaceMat, titlePageMat, shadowMat, ...frontCoverMats].forEach(
-        (m) => m.dispose()
+      [pagesGeo, spineGeo, backCoverGeo, frontCoverGeo, flipPageGeo, shadowGeo].forEach((g) =>
+        g.dispose()
       );
+      [
+        leatherMat,
+        pageEdgeMat,
+        pageFaceMat,
+        titlePageMat,
+        flipBackMat,
+        shadowMat,
+        ...frontCoverMats,
+      ].forEach((m) => m.dispose());
       [
         leatherTex,
         leatherNormal,
@@ -261,11 +371,8 @@ export function Book({ chapter, onOpen }: BookProps) {
     <div
       ref={mountRef}
       className={`book-canvas ${ready && chapter.available ? "is-ready" : ""}`}
-      onClick={() => {
-        if (ready && chapter.available) onOpen();
-      }}
       role={ready && chapter.available ? "button" : undefined}
-      aria-label={ready && chapter.available ? `Open ${chapter.title}` : undefined}
+      aria-label={ready && chapter.available ? `Drag the page to open ${chapter.title}` : undefined}
     />
   );
 }
