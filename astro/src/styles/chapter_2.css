@@ -1263,6 +1263,58 @@ label span {
   transition: border-color 0.25s ease, color 0.25s ease, box-shadow 0.25s ease, background 0.25s ease;
 }
 
+.mute-toggle {
+  position: fixed;
+  top: 68px;
+  right: 18px;
+  z-index: 100000;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 14px;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 210, 76, 0.58);
+  background: rgba(8, 16, 32, 0.82);
+  color: #fff2bf;
+  font-family: "Orbitron", "Rajdhani", sans-serif;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  box-shadow: 0 0 0 1px rgba(255, 210, 76, 0.18), 0 6px 18px rgba(0, 0, 0, 0.45);
+  transition: border-color 0.25s ease, color 0.25s ease, box-shadow 0.25s ease, background 0.25s ease;
+}
+
+.mute-toggle:hover {
+  border-color: rgba(255, 210, 76, 0.96);
+  box-shadow: 0 0 0 1px rgba(255, 210, 76, 0.4), 0 0 18px rgba(255, 210, 76, 0.32);
+}
+
+.mute-toggle-dot {
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  background: #ffd24c;
+  box-shadow: 0 0 6px #ffd24c, 0 0 12px rgba(255, 210, 76, 0.7);
+  transition: background 0.25s ease, box-shadow 0.25s ease;
+}
+
+.mute-toggle.is-muted {
+  border-color: rgba(166, 186, 216, 0.45);
+  color: #d6e2f5;
+  box-shadow: 0 0 0 1px rgba(166, 186, 216, 0.14), 0 6px 18px rgba(0, 0, 0, 0.45);
+}
+
+.mute-toggle.is-muted:hover {
+  border-color: rgba(166, 186, 216, 0.8);
+  box-shadow: 0 0 0 1px rgba(166, 186, 216, 0.3), 0 0 18px rgba(166, 186, 216, 0.2);
+}
+
+.mute-toggle.is-muted .mute-toggle-dot {
+  background: #a6bad8;
+  box-shadow: 0 0 6px #a6bad8, 0 0 12px rgba(166, 186, 216, 0.58);
+}
+
 .side-toggle:hover {
   border-color: rgba(123, 227, 255, 0.9);
   box-shadow: 0 0 0 1px rgba(123, 227, 255, 0.45), 0 0 18px rgba(123, 227, 255, 0.45);

@@ -26,6 +26,22 @@ const api = createChapterApi({
   connectedMessage: "Rebel command sync active.",
 });
 
+const BUTTON_CLICK_SOUND_PATH = "/chapter_2/star-wars-blaster.mp3";
+const BUTTON_CLICK_AUDIO_POOL_SIZE = 4;
+const BUTTON_SOUND_MUTED_STORAGE_KEY = "chapter2-button-sound-muted";
+const IMPERIAL_MARCH_VOLUME = 0.035;
+const buttonClickAudioPool = Array.from({ length: BUTTON_CLICK_AUDIO_POOL_SIZE }, () =>
+  typeof Audio === "function" ? new Audio(BUTTON_CLICK_SOUND_PATH) : null,
+).filter(Boolean);
+let buttonClickAudioIndex = 0;
+let isButtonSoundMuted = window.localStorage.getItem(BUTTON_SOUND_MUTED_STORAGE_KEY) === "true";
+let imperialMarchAudioContext = null;
+
+buttonClickAudioPool.forEach((audio) => {
+  audio.preload = "auto";
+  audio.load();
+});
+
 const state = {
   participants: [],
   runs: [],
@@ -69,6 +85,7 @@ const els = {
   resetModal: document.getElementById("resetModal"),
   cancelResetButton: document.getElementById("cancelResetButton"),
   confirmResetButton: document.getElementById("confirmResetButton"),
+  muteToggle: document.getElementById("muteToggle"),
 };
 
 function todayIsoDate() {
@@ -871,10 +888,26 @@ function renderShipGrid() {
   }).join("");
 }
 
-function renderCharacterOptions() {
-  els.participantCharacter.innerHTML = CHARACTER_OPTIONS.map(
-    (character) => `<option value="${character.key}">${character.label} · ${character.flavor}</option>`,
-  ).join("");
+function takenCharacterKeys(excludeRunnerId = "") {
+  return new Set(
+    state.participants
+      .filter((participant) => participant.id !== excludeRunnerId)
+      .map((participant) => participant.characterKey)
+      .filter(Boolean),
+  );
+}
+
+function firstAvailableCharacterKey(excludeRunnerId = "") {
+  const taken = takenCharacterKeys(excludeRunnerId);
+  return CHARACTER_OPTIONS.find((character) => !taken.has(character.key))?.key || DEFAULT_CHARACTER_KEY;
+}
+
+function renderCharacterOptions(excludeRunnerId = "", selectedCharacterKey = "") {
+  const taken = takenCharacterKeys(excludeRunnerId);
+  els.participantCharacter.innerHTML = CHARACTER_OPTIONS.map((character) => {
+    const disabled = taken.has(character.key) && character.key !== selectedCharacterKey;
+    return `<option value="${character.key}" ${disabled ? "disabled" : ""}>${character.label} · ${character.flavor}${disabled ? " (Taken)" : ""}</option>`;
+  }).join("");
 }
 
 function renderGoalPresetOptions() {
@@ -921,6 +954,7 @@ function openParticipantModal(mode, runner = null) {
   state.participantModalMode = mode;
 
   if (mode === "edit" && runner) {
+    renderCharacterOptions(runner.id, runner.characterKey);
     els.participantModalEyebrow.textContent = "Edit Rebel";
     els.participantModalTitle.textContent = "Update the crew member";
     els.participantId.value = runner.id;
@@ -933,7 +967,9 @@ function openParticipantModal(mode, runner = null) {
     els.participantModalTitle.textContent = "Add a crew member";
     els.participantForm.reset();
     els.participantId.value = "";
-    els.participantCharacter.value = DEFAULT_CHARACTER_KEY;
+    const availableCharacterKey = firstAvailableCharacterKey();
+    renderCharacterOptions("", availableCharacterKey);
+    els.participantCharacter.value = availableCharacterKey;
     els.participantGoalPreset.value = presetForGoal(DEFAULT_RUNNER_GOAL)?.key || "squad-leader";
     els.participantGoal.value = String(DEFAULT_RUNNER_GOAL);
   }
@@ -960,7 +996,95 @@ function closeDeleteRunModal() {
   els.deleteRunModal.close();
 }
 
+function playButtonClickSound() {
+  if (isButtonSoundMuted) return;
+  if (!buttonClickAudioPool.length) return;
+
+  const sound = buttonClickAudioPool[buttonClickAudioIndex];
+  buttonClickAudioIndex = (buttonClickAudioIndex + 1) % buttonClickAudioPool.length;
+  sound.currentTime = 0;
+  sound.volume = 0.45;
+  sound.play().catch(() => {});
+}
+
+function getImperialMarchAudioContext() {
+  if (typeof window === "undefined") return null;
+  const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+  if (!AudioContextClass) return null;
+  if (!imperialMarchAudioContext) {
+    imperialMarchAudioContext = new AudioContextClass();
+  }
+  return imperialMarchAudioContext;
+}
+
+async function playImperialMarchClip() {
+  if (isButtonSoundMuted) return;
+
+  const context = getImperialMarchAudioContext();
+  if (!context) return;
+
+  if (context.state === "suspended") {
+    try {
+      await context.resume();
+    } catch {
+      return;
+    }
+  }
+
+  const notes = [
+    { frequency: 196.0, duration: 0.18 },
+    { frequency: 196.0, duration: 0.18 },
+    { frequency: 196.0, duration: 0.18 },
+    { frequency: 155.56, duration: 0.14 },
+    { frequency: 233.08, duration: 0.06 },
+    { frequency: 196.0, duration: 0.18 },
+    { frequency: 155.56, duration: 0.14 },
+    { frequency: 233.08, duration: 0.06 },
+    { frequency: 196.0, duration: 0.22 },
+  ];
+
+  let cursor = context.currentTime + 0.01;
+
+  notes.forEach((note, index) => {
+    const oscillator = context.createOscillator();
+    const gain = context.createGain();
+    oscillator.type = "triangle";
+    oscillator.frequency.setValueAtTime(note.frequency, cursor);
+    gain.gain.setValueAtTime(0.0001, cursor);
+    gain.gain.linearRampToValueAtTime(IMPERIAL_MARCH_VOLUME, cursor + 0.018);
+    gain.gain.exponentialRampToValueAtTime(0.0001, cursor + note.duration);
+    oscillator.connect(gain);
+    gain.connect(context.destination);
+    oscillator.start(cursor);
+    oscillator.stop(cursor + note.duration + 0.03);
+    cursor += note.duration + (index === 4 || index === 7 ? 0.11 : 0.05);
+  });
+}
+
+function syncMuteToggle() {
+  if (!els.muteToggle) return;
+  els.muteToggle.classList.toggle("is-muted", isButtonSoundMuted);
+  els.muteToggle.setAttribute("aria-pressed", String(isButtonSoundMuted));
+  const label = els.muteToggle.querySelector(".mute-toggle-label");
+  if (label) {
+    label.textContent = isButtonSoundMuted ? "SFX Off" : "SFX On";
+  }
+}
+
 function bindUi() {
+  document.addEventListener("pointerdown", (event) => {
+    const button = event.target.closest("button");
+    if (!button || button.disabled || button.hasAttribute("data-audio-toggle")) return;
+    if (button.closest("[data-runner-form]") && button.type === "submit") return;
+    playButtonClickSound();
+  });
+
+  els.muteToggle?.addEventListener("click", () => {
+    isButtonSoundMuted = !isButtonSoundMuted;
+    window.localStorage.setItem(BUTTON_SOUND_MUTED_STORAGE_KEY, String(isButtonSoundMuted));
+    syncMuteToggle();
+  });
+
   els.addParticipantButton.addEventListener("click", () => openParticipantModal("create"));
   els.cancelParticipantButton.addEventListener("click", () => closeParticipantModal());
   els.resetRunsButton.addEventListener("click", () => els.resetModal.showModal());
@@ -975,8 +1099,11 @@ function bindUi() {
     const name = els.participantName.value.trim();
     const characterKey = els.participantCharacter.value || DEFAULT_CHARACTER_KEY;
     const goalMiles = Number.parseInt(els.participantGoal.value, 10);
+    const selectedElsewhere = state.participants.some(
+      (participant) => participant.id !== id && participant.characterKey === characterKey,
+    );
 
-    if (!name || !Number.isFinite(goalMiles) || goalMiles <= 0) return;
+    if (!name || !Number.isFinite(goalMiles) || goalMiles <= 0 || selectedElsewhere) return;
 
     try {
       if (state.participantModalMode === "edit" && id) {
@@ -1028,6 +1155,7 @@ function bindUi() {
         miles: 0,
         runDate,
       });
+      playImperialMarchClip();
       form.reset();
       form.elements.durationMinutes.value = "30";
       form.elements.runDate.value = chapterDefaultDate();
@@ -1070,6 +1198,7 @@ async function init() {
   renderCharacterOptions();
   renderGoalPresetOptions();
   syncGoalPresetUi();
+  syncMuteToggle();
   render();
   bindUi();
 

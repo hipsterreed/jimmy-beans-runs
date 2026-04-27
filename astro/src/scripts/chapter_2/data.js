@@ -47,9 +47,14 @@ export const ACTIVITY_TYPES = [
 ];
 
 export const CHARACTER_OPTIONS = [
+  { key: "babu-frik", label: "Babu Frik", flavor: "Small mechanic, huge upside. Quietly upgrades the whole operation.", accent: "amber" },
+  { key: "padme", label: "Padme Amidala", flavor: "Poised, disciplined, and impossible to shake off the plan.", accent: "rose" },
   { key: "luke", label: "Luke Skywalker", flavor: "Keeps the trench run alive with steady reps and calm under pressure.", accent: "gold" },
   { key: "leia", label: "Leia Organa", flavor: "Command presence. Ruthless consistency. Never misses a session.", accent: "rose" },
+  { key: "rey", label: "Rey", flavor: "Learns fast, adapts faster, and turns raw effort into real power.", accent: "sand" },
   { key: "han", label: "Han Solo", flavor: "Unstructured plan, still somehow posts a huge weekly total.", accent: "rust" },
+  { key: "jarjar", label: "Jar Jar Binks", flavor: "Chaotic form, accidental output. Somehow keeps the squad moving.", accent: "teal" },
+  { key: "jabba", label: "Jabba the Hutt", flavor: "Does not rush, but still somehow controls the whole board.", accent: "olive" },
   { key: "chewie", label: "Chewbacca", flavor: "Raw strength and giant engine. Heavy days hit different.", accent: "bark" },
   { key: "lando", label: "Lando Calrissian", flavor: "Smooth pacing, sharp recovery, suspiciously clean splits.", accent: "blue" },
   { key: "r2d2", label: "R2-D2", flavor: "Tiny frame, elite output, always doing more than expected.", accent: "ice" },
