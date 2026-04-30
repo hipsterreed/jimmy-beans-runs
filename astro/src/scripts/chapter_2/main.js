@@ -95,6 +95,9 @@ const els = {
   cancelResetButton: document.getElementById("cancelResetButton"),
   confirmResetButton: document.getElementById("confirmResetButton"),
   muteToggle: document.getElementById("muteToggle"),
+  avatarViewerModal: document.getElementById("avatarViewerModal"),
+  avatarViewerFrame: document.getElementById("avatarViewerFrame"),
+  closeAvatarViewerButton: document.getElementById("closeAvatarViewerButton"),
 };
 
 function todayIsoDate() {
@@ -156,6 +159,58 @@ function selectionCharacters() {
 
 function activityFor(key) {
   return ACTIVITY_TYPES.find((activity) => activity.key === key) || ACTIVITY_TYPES[0];
+}
+
+function characterImageUrlFor(key) {
+  if (key === "salacious-crumb" || key === "mace-windu") {
+    return "/chapter_2/mace_windu.png";
+  }
+  return "";
+}
+
+function openAvatarViewer(imageUrl) {
+  if (!imageUrl || !els.avatarViewerModal || !els.avatarViewerFrame) return;
+  const safeUrl = String(imageUrl).replace(/"/g, "&quot;");
+  els.avatarViewerFrame.srcdoc = `<!doctype html>
+  <html lang="en">
+    <head>
+      <meta charset="UTF-8" />
+      <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+      <style>
+        html, body {
+          margin: 0;
+          min-height: 100%;
+          background: #040813;
+        }
+        body {
+          display: grid;
+          place-items: center;
+          padding: 16px;
+          box-sizing: border-box;
+        }
+        img {
+          display: block;
+          max-width: min(92vw, 860px);
+          max-height: min(82vh, 720px);
+          width: auto;
+          height: auto;
+          border-radius: 18px;
+          box-shadow: 0 18px 36px rgba(0,0,0,0.45);
+        }
+      </style>
+    </head>
+    <body>
+      <img src="${safeUrl}" alt="Expanded character portrait" />
+    </body>
+  </html>`;
+  els.avatarViewerModal.showModal();
+}
+
+function closeAvatarViewer() {
+  if (!els.avatarViewerModal || !els.avatarViewerFrame) return;
+  els.avatarViewerFrame.removeAttribute("src");
+  els.avatarViewerFrame.srcdoc = "";
+  els.avatarViewerModal.close();
 }
 
 function pixelSvg(sprite, className = "pixel-sprite", options = {}) {
@@ -732,8 +787,11 @@ function runnerCardMarkup(runner) {
   const levelSpan = Math.max(nextLevelFloor - currentLevelFloor, 1);
   const levelRemaining = Math.max(nextLevelFloor - points, 0);
   const levelProgress = Math.min(pointsIntoLevel / levelSpan, 1);
-  const avatarMarkup = runner.imageUrl
-    ? `<div class="avatar" style="background-image:url('${runner.imageUrl}')"></div>`
+  const avatarUrl = runner.imageUrl || characterImageUrlFor(runner.characterKey);
+  const avatarMarkup = avatarUrl
+    ? `<button type="button" class="avatar avatar-button" data-avatar-src="${avatarUrl}" aria-label="View ${runner.name} portrait">
+         <img class="avatar-image" src="${avatarUrl}" alt="${runner.name} portrait" />
+       </button>`
     : `<div class="avatar">${normalizeNameInitials(runner.name)}</div>`;
   const supportThresholdUnit = goal > 0 ? goal / SUPPORT_UNLOCKS.length : 0;
   const supportMarkup = SUPPORT_UNLOCKS.map((item, index) => {
@@ -1201,6 +1259,12 @@ function bindUi() {
   });
 
   els.runnerGrid.addEventListener("click", (event) => {
+    const avatarButton = event.target.closest("[data-avatar-src]");
+    if (avatarButton) {
+      openAvatarViewer(avatarButton.dataset.avatarSrc);
+      return;
+    }
+
     const editButton = event.target.closest("[data-edit-runner]");
     if (editButton) {
       const runner = state.participants.find((participant) => participant.id === editButton.dataset.editRunner);
@@ -1269,11 +1333,14 @@ function bindUi() {
     }
   });
 
+  els.closeAvatarViewerButton?.addEventListener("click", () => closeAvatarViewer());
+
   document.addEventListener("keydown", (event) => {
     if (event.key !== "Escape") return;
     if (els.participantModal.open) closeParticipantModal();
     if (els.deleteRunModal.open) closeDeleteRunModal();
     if (els.resetModal.open) els.resetModal.close();
+    if (els.avatarViewerModal?.open) closeAvatarViewer();
   });
 }
 

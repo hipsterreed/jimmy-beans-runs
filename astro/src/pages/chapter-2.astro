@@ -196,6 +196,23 @@ const title = "Jimmy-Bean Runs · The Anniepire Strikes Back";
       </form>
     </dialog>
 
+    <dialog id="avatarViewerModal" class="modal avatar-viewer-modal">
+      <form method="dialog" class="modal-form avatar-viewer-form">
+        <div class="modal-body avatar-viewer-body">
+          <div class="avatar-viewer-header">
+            <p class="eyebrow">Portrait Viewer</p>
+            <button type="button" id="closeAvatarViewerButton" class="ghost-button">Close</button>
+          </div>
+          <iframe
+            id="avatarViewerFrame"
+            class="avatar-viewer-frame"
+            title="Expanded character portrait"
+            loading="lazy"
+          ></iframe>
+        </div>
+      </form>
+    </dialog>
+
     <script>
       import "../scripts/chapter_2/main.js";
     </script>
