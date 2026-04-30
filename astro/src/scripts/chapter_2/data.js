@@ -54,6 +54,7 @@ export const CHARACTER_OPTIONS = [
   { key: "rey", label: "Rey", flavor: "Learns fast, adapts faster, and turns raw effort into real power.", accent: "sand" },
   { key: "han", label: "Han Solo", flavor: "Unstructured plan, still somehow posts a huge weekly total.", accent: "rust" },
   { key: "jarjar", label: "Jar Jar Binks", flavor: "Chaotic form, accidental output. Somehow keeps the squad moving.", accent: "teal" },
+  { key: "salacious-crumb", label: "Salacious B. Crumb", flavor: "Shrieking chaos gremlin energy. Entirely unserious, somehow still present for everything.", accent: "amber" },
   { key: "jabba", label: "Jabba the Hutt", flavor: "Does not rush, but still somehow controls the whole board.", accent: "olive" },
   { key: "chewie", label: "Chewbacca", flavor: "Raw strength and giant engine. Heavy days hit different.", accent: "bark" },
   { key: "lando", label: "Lando Calrissian", flavor: "Smooth pacing, sharp recovery, suspiciously clean splits.", accent: "blue" },
@@ -188,8 +189,8 @@ export const SUPPORT_UNLOCKS = [
 ];
 
 export const CHAPTER_THEME = {
-  title: "Destroy the Death Star",
-  eyebrow: "Chapter 2 · May 2026",
+  title: "The Anniepire Strikes Back",
+  eyebrow: "The Anniepire Strikes Back · May 2026",
   description:
     "The rebels race through May by stacking experience points from every kind of training. Running, walking, hiking, lifting, and conditioning all help expose the Death Star.",
   pointsExplanation:

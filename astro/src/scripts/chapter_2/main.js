@@ -134,6 +134,17 @@ function characterFor(key) {
   return CHARACTER_OPTIONS.find((character) => character.key === key) || CHARACTER_OPTIONS[0];
 }
 
+function selectionCharacters() {
+  return [
+    ...CHARACTER_OPTIONS.filter((character) => character.key !== "salacious-crumb"),
+    {
+      key: "salacious-crumb",
+      label: "Mace Windu",
+      flavor: "Purple-blade legend. Definitely not a tiny cackling lizard.",
+    },
+  ];
+}
+
 function activityFor(key) {
   return ACTIVITY_TYPES.find((activity) => activity.key === key) || ACTIVITY_TYPES[0];
 }
@@ -899,12 +910,12 @@ function takenCharacterKeys(excludeRunnerId = "") {
 
 function firstAvailableCharacterKey(excludeRunnerId = "") {
   const taken = takenCharacterKeys(excludeRunnerId);
-  return CHARACTER_OPTIONS.find((character) => !taken.has(character.key))?.key || DEFAULT_CHARACTER_KEY;
+  return selectionCharacters().find((character) => !taken.has(character.key))?.key || DEFAULT_CHARACTER_KEY;
 }
 
 function renderCharacterOptions(excludeRunnerId = "", selectedCharacterKey = "") {
   const taken = takenCharacterKeys(excludeRunnerId);
-  els.participantCharacter.innerHTML = CHARACTER_OPTIONS.map((character) => {
+  els.participantCharacter.innerHTML = selectionCharacters().map((character) => {
     const disabled = taken.has(character.key) && character.key !== selectedCharacterKey;
     return `<option value="${character.key}" ${disabled ? "disabled" : ""}>${character.label} · ${character.flavor}${disabled ? " (Taken)" : ""}</option>`;
   }).join("");

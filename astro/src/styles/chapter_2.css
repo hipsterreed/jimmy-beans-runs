@@ -382,12 +382,14 @@ h3 {
   gap: 14px;
   align-items: flex-start;
   margin-bottom: 14px;
+  min-width: 0;
 }
 
 .runner-ident {
   display: flex;
   gap: 12px;
   align-items: center;
+  min-width: 0;
 }
 
 .avatar {
@@ -419,6 +421,7 @@ h3 {
 .runner-flavor {
   margin: 0;
   color: var(--muted);
+  overflow-wrap: anywhere;
 }
 
 .stats-row {
@@ -426,6 +429,7 @@ h3 {
   grid-template-columns: repeat(4, minmax(0, 1fr));
   gap: 10px;
   margin-bottom: 14px;
+  min-width: 0;
 }
 
 .micro-card {
@@ -435,6 +439,7 @@ h3 {
   background:
     linear-gradient(180deg, rgba(255,255,255,0.05), rgba(255,255,255,0.01)),
     rgba(9, 16, 29, 0.8);
+  min-width: 0;
 }
 
 .micro-label {
@@ -449,16 +454,27 @@ h3 {
 
 .micro-value {
   margin: 0;
-  font-size: 30px;
+  font-size: clamp(22px, 2.1vw, 30px);
   font-weight: 700;
+  line-height: 1;
+  overflow-wrap: anywhere;
 }
 
 .entry-form {
   display: grid;
-  grid-template-columns: 1.1fr 0.8fr 0.9fr auto;
+  grid-template-columns: minmax(0, 1.1fr) minmax(0, 0.72fr) minmax(0, 1fr) auto;
   gap: 10px;
   align-items: end;
   margin-bottom: 14px;
+  min-width: 0;
+}
+
+.entry-form > * {
+  min-width: 0;
+}
+
+.entry-form button[type="submit"] {
+  white-space: nowrap;
 }
 
 .runner-support {
@@ -504,6 +520,7 @@ h3 {
 .runner-support-copy {
   margin: 0;
   color: var(--muted);
+  overflow-wrap: anywhere;
 }
 
 .runner-support-caret {
@@ -520,6 +537,7 @@ h3 {
 .entry-log {
   display: grid;
   gap: 8px;
+  min-width: 0;
 }
 
 .entry-item {
@@ -533,12 +551,22 @@ h3 {
   background:
     linear-gradient(180deg, rgba(255,255,255,0.03), rgba(255,255,255,0.01)),
     rgba(9, 16, 29, 0.76);
+  min-width: 0;
 }
 
 .entry-actions {
   display: flex;
   align-items: center;
   gap: 8px;
+}
+
+.entry-item > div:first-child,
+.entry-meta,
+.entry-date,
+.panel-copy,
+.empty-copy {
+  min-width: 0;
+  overflow-wrap: anywhere;
 }
 
 .entry-delete {
