@@ -44,28 +44,16 @@ const title = "Jimmy-Bean Runs · The Anniepire Strikes Back";
 
         <div class="hero-totals">
           <article class="stat-card primary-stat">
-            <p class="stat-label">Rebel XP</p>
-            <div class="stat-row">
-              <span id="totalPoints" class="stat-value">0</span>
-              <span class="stat-sep">/</span>
-              <span id="goalPoints" class="stat-goal">0</span>
-              <span class="stat-unit">XP</span>
-            </div>
-            <div class="level-shell">
-              <div class="level-shell-header">
-                <p class="level-shell-label">Level <span id="levelCurrent">1</span></p>
-                <p class="level-shell-label">Next level in <span id="levelRemaining">120</span> XP</p>
-              </div>
-              <div class="level-bar">
-                <div id="levelFill" class="level-fill"></div>
-                <div class="level-bar-overlay">
-                  <span id="levelProgressText">0 / 120 XP</span>
-                </div>
-              </div>
-            </div>
+            <p class="stat-label">Team Battle Strength</p>
+            <p id="teamBattleStrength" class="stat-value compact">0%</p>
             <div class="progress-shell">
+              <div class="progress-shell-header">
+                <p class="level-shell-label">Battle of Yavin</p>
+                <p id="progressStatus" class="level-shell-label">Awaiting May 31</p>
+              </div>
               <div class="progress-bar">
                 <div id="progressFill" class="progress-fill"></div>
+                <div class="battle-progress-threshold" aria-hidden="true"></div>
               </div>
               <p id="progressText" class="progress-copy">Recruit the squad to establish the attack plan.</p>
             </div>
@@ -105,70 +93,10 @@ const title = "Jimmy-Bean Runs · The Anniepire Strikes Back";
         <div class="panel-header">
           <div>
             <p class="eyebrow">Final Battle</p>
-            <h2>Battle of Yavin resolves on May 31</h2>
+            <h2>Battle of Yavin ON MAY 31ST.</h2>
           </div>
         </div>
         <p id="battleIntro" class="panel-copy">The Death Star encounter always happens at month end. The only question is whether the fleet is strong enough to win.</p>
-        <section class="battle-panel">
-          <article class="battle-summary">
-            <div class="battle-summary-header">
-              <div>
-                <p class="battle-summary-label">Battle Readiness</p>
-                <h3 id="battleScore">0%</h3>
-              </div>
-              <div class="battle-score-chip">
-                <span id="battleStatus">Awaiting May 31</span>
-              </div>
-            </div>
-            <div class="battle-progress-shell">
-              <div class="battle-progress-bar">
-                <div id="battleScoreFill" class="battle-progress-fill"></div>
-                <div class="battle-progress-threshold" aria-hidden="true"></div>
-              </div>
-              <p class="tiny-copy">Victory requires 90% Battle Readiness by the final day of May.</p>
-            </div>
-            <div class="battle-outcome-card">
-              <p class="battle-outcome-label">Projected Outcome</p>
-              <h3 id="battleOutcomeTitle">Death Star Destroyed</h3>
-              <p id="battleOutcomeDescription" class="panel-copy">Build the fleet through May to lock in the trench run win.</p>
-            </div>
-          </article>
-
-          <div class="battle-metrics">
-            <article class="battle-metric-card">
-              <div class="battle-metric-header">
-                <p class="battle-metric-label">Fleet XP Progress</p>
-                <p id="battleXpPercent" class="battle-metric-value">0%</p>
-              </div>
-              <div class="battle-metric-bar">
-                <div id="battleXpFill" class="battle-metric-fill"></div>
-              </div>
-              <p class="tiny-copy">70% of the final score comes from the group XP target.</p>
-            </article>
-
-            <article class="battle-metric-card">
-              <div class="battle-metric-header">
-                <p class="battle-metric-label">Rebels At Target</p>
-                <p id="battleTargetPercent" class="battle-metric-value">0%</p>
-              </div>
-              <div class="battle-metric-bar">
-                <div id="battleTargetFill" class="battle-metric-fill"></div>
-              </div>
-              <p class="tiny-copy">20% of the final score comes from how many rebels hit their target level.</p>
-            </article>
-
-            <article class="battle-metric-card">
-              <div class="battle-metric-header">
-                <p class="battle-metric-label">Campaign Unlocks</p>
-                <p id="battleUnlockPercent" class="battle-metric-value">0%</p>
-              </div>
-              <div class="battle-metric-bar">
-                <div id="battleUnlockFill" class="battle-metric-fill"></div>
-              </div>
-              <p class="tiny-copy">10% of the final score comes from planet and ship unlock progress.</p>
-            </article>
-          </div>
-        </section>
       </section>
 
       <section class="panel">
@@ -189,7 +117,7 @@ const title = "Jimmy-Bean Runs · The Anniepire Strikes Back";
             <h2>Unlocked ships appear here as the fleet comes online</h2>
           </div>
         </div>
-        <p class="panel-copy">Locked ships stay in silhouette until their matching planet threshold is cleared.</p>
+        <p class="panel-copy">Ships only appear after their matching planet threshold has been cleared.</p>
         <section id="shipGrid" class="ship-grid"></section>
       </section>
 

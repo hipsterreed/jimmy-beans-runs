@@ -65,33 +65,18 @@ const els = {
   chapterEyebrow: document.getElementById("chapterEyebrow"),
   chapterDescription: document.getElementById("chapterDescription"),
   pointsExplanation: document.getElementById("pointsExplanation"),
-  totalPoints: document.getElementById("totalPoints"),
-  goalPoints: document.getElementById("goalPoints"),
   progressFill: document.getElementById("progressFill"),
+  progressStatus: document.getElementById("progressStatus"),
   progressText: document.getElementById("progressText"),
   activeTime: document.getElementById("activeTime"),
   rebelLevel: document.getElementById("rebelLevel"),
-  levelCurrent: document.getElementById("levelCurrent"),
-  levelRemaining: document.getElementById("levelRemaining"),
-  levelFill: document.getElementById("levelFill"),
-  levelProgressText: document.getElementById("levelProgressText"),
   addParticipantButton: document.getElementById("addParticipantButton"),
   resetRunsButton: document.getElementById("resetRunsButton"),
   runnerGrid: document.getElementById("runnerGrid"),
   flightPath: document.getElementById("flightPath"),
   shipGrid: document.getElementById("shipGrid"),
   battleIntro: document.getElementById("battleIntro"),
-  battleScore: document.getElementById("battleScore"),
-  battleStatus: document.getElementById("battleStatus"),
-  battleScoreFill: document.getElementById("battleScoreFill"),
-  battleOutcomeTitle: document.getElementById("battleOutcomeTitle"),
-  battleOutcomeDescription: document.getElementById("battleOutcomeDescription"),
-  battleXpPercent: document.getElementById("battleXpPercent"),
-  battleXpFill: document.getElementById("battleXpFill"),
-  battleTargetPercent: document.getElementById("battleTargetPercent"),
-  battleTargetFill: document.getElementById("battleTargetFill"),
-  battleUnlockPercent: document.getElementById("battleUnlockPercent"),
-  battleUnlockFill: document.getElementById("battleUnlockFill"),
+  teamBattleStrength: document.getElementById("teamBattleStrength"),
   participantModal: document.getElementById("participantModal"),
   participantModalEyebrow: document.getElementById("participantModalEyebrow"),
   participantModalTitle: document.getElementById("participantModalTitle"),
@@ -820,69 +805,43 @@ function renderThemeCopy() {
 }
 
 function renderTotals() {
-  const points = totalPoints();
   const goal = totalGoalPoints();
   const minutes = totalMinutes();
-  const progress = goal > 0 ? Math.min(points / goal, 1) : 0;
-  const remaining = Math.max(goal - points, 0);
+  const battle = battleState();
   const level = totalLevel();
-  const currentLevelFloor = pointsForLevel(level);
-  const nextLevelFloor = nextLevelPoints(level);
-  const pointsIntoLevel = Math.max(points - currentLevelFloor, 0);
-  const levelSpan = Math.max(nextLevelFloor - currentLevelFloor, 1);
-  const levelRemaining = Math.max(nextLevelFloor - points, 0);
-  const levelProgress = Math.min(pointsIntoLevel / levelSpan, 1);
 
-  els.totalPoints.textContent = formatPoints(points);
-  els.goalPoints.textContent = formatPoints(goal);
   els.activeTime.textContent = formatMinutes(minutes);
   els.rebelLevel.textContent = String(level);
-  els.levelCurrent.textContent = String(level);
-  els.levelRemaining.textContent = formatPoints(levelRemaining);
-  els.levelFill.style.width = `${levelProgress * 100}%`;
-  els.levelProgressText.textContent = `${formatPoints(pointsIntoLevel)} / ${formatPoints(levelSpan)} XP`;
-  els.progressFill.style.width = `${progress * 100}%`;
+  els.teamBattleStrength.textContent = `${Math.round(battle.score)}%`;
+  els.progressFill.style.width = `${battle.score}%`;
 
   if (goal <= 0) {
-    els.progressText.textContent = "Recruit rebels to set the attack target.";
-  } else if (remaining > 0) {
-    els.progressText.textContent = `${formatPoints(remaining)} XP needed to fully prep the fleet before the Battle of Yavin.`;
+    els.progressStatus.textContent = "Roster required";
+    els.progressText.textContent = "Set rebel target levels first to calculate Battle Strength.";
+  } else if (!battle.isBattleDay) {
+    const delta = Math.max(90 - battle.score, 0);
+    els.progressStatus.textContent = delta > 0 ? `${Math.ceil(delta)}% short of victory` : "Victory pace secured";
+    els.progressText.textContent = "Team Battle Strength combines fleet XP, rebels hitting target level, and campaign unlock progress.";
   } else {
-    els.progressText.textContent = "Fleet XP target reached. Hold the line until May 31 to resolve the final battle.";
+    els.progressStatus.textContent = battle.outcome.title;
+    els.progressText.textContent = "Battle Strength is locked. The final outcome now reflects the fleet strength you built through May.";
   }
 }
 
 function renderBattlePanel() {
   const battle = battleState();
-  const projectedOutcome = battleOutcomeFor(battle.score);
-  const shownOutcome = battle.isBattleDay ? battle.outcome : projectedOutcome;
-
-  els.battleScore.textContent = `${Math.round(battle.score)}%`;
-  els.battleScoreFill.style.width = `${battle.score}%`;
-  els.battleXpPercent.textContent = `${Math.round(battle.xpProgressPercent)}%`;
-  els.battleXpFill.style.width = `${battle.xpProgressPercent}%`;
-  els.battleTargetPercent.textContent = `${Math.round(battle.targetPercent)}%`;
-  els.battleTargetFill.style.width = `${battle.targetPercent}%`;
-  els.battleUnlockPercent.textContent = `${Math.round(battle.unlockPercent)}%`;
-  els.battleUnlockFill.style.width = `${battle.unlockPercent}%`;
-  els.battleOutcomeTitle.textContent = shownOutcome.title;
-  els.battleOutcomeDescription.textContent = shownOutcome.description;
 
   if (battle.goal <= 0) {
     els.battleIntro.textContent = "Set rebel target levels first. The final battle score is calculated from group XP, rebels hitting target, and campaign unlocks.";
-    els.battleStatus.textContent = "Roster required";
     return;
   }
 
   if (!battle.isBattleDay) {
-    const delta = Math.max(90 - battle.score, 0);
-    els.battleIntro.textContent = `The Death Star encounter is locked for ${parseDateLabel(FINAL_BATTLE_DATE)}. Build readiness now so the fleet is strong enough when the battle starts.`;
-    els.battleStatus.textContent = delta > 0 ? `${Math.ceil(delta)}% short of victory` : "Victory pace secured";
+    els.battleIntro.textContent = `The Death Star encounter is locked for ${parseDateLabel(FINAL_BATTLE_DATE)}. Build battle strength now so the fleet is strong enough when the battle starts.`;
     return;
   }
 
   els.battleIntro.textContent = "Battle day is live. The outcome below is resolved from the fleet strength you built through May.";
-  els.battleStatus.textContent = shownOutcome.title;
 }
 
 function runnerCardMarkup(runner) {
@@ -1098,14 +1057,29 @@ function renderShipGrid() {
   const goal = totalGoalPoints();
   const points = totalPoints();
   const thresholdUnit = goal > 0 ? goal / PLANET_UNLOCKS.length : 0;
+  const unlockedShips = PLANET_UNLOCKS
+    .map((planet, index) => {
+      const unlockPoints = thresholdUnit * (index + 1);
+      const unlocked = points >= unlockPoints;
+      return { planet, unlockPoints, unlocked };
+    })
+    .filter((item) => item.unlocked);
 
-  els.shipGrid.innerHTML = PLANET_UNLOCKS.map((planet, index) => {
-    const unlockPoints = thresholdUnit * (index + 1);
-    const unlocked = points >= unlockPoints;
+  if (!unlockedShips.length) {
+    els.shipGrid.innerHTML = `
+      <article class="ship-empty-state">
+        <p class="eyebrow">Hangar Locked</p>
+        <p class="empty-copy">No ships unlocked yet. Clear planets on the flight path to start filling the hangar.</p>
+      </article>
+    `;
+    return;
+  }
+
+  els.shipGrid.innerHTML = unlockedShips.map(({ planet, unlockPoints }) => {
     const shipSprite = shipIllustration(planet.shipKey, "ship-illustration");
 
     return `
-      <article class="ship-node ${unlocked ? "" : "is-locked"}">
+      <article class="ship-node">
         <button type="button" class="ship-node-orb" aria-label="${planet.ship}: ${formatPoints(unlockPoints)} XP">
           <span class="ship-node-halo"></span>
           <span class="ship-icon-shell">
@@ -1116,7 +1090,7 @@ function renderShipGrid() {
         <div class="ship-node-card">
           <p class="planet-threshold">${formatPoints(unlockPoints)} XP</p>
           <h3>${planet.ship}</h3>
-          <p class="planet-description">${unlocked ? `Unlocked at ${planet.title}.` : `Locked until ${planet.title}.`}</p>
+          <p class="planet-description">Unlocked at ${planet.title}.</p>
         </div>
       </article>
     `;
