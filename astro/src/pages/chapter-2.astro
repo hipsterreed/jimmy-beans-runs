@@ -104,6 +104,76 @@ const title = "Jimmy-Bean Runs · The Anniepire Strikes Back";
       <section class="panel">
         <div class="panel-header">
           <div>
+            <p class="eyebrow">Final Battle</p>
+            <h2>Battle of Yavin resolves on May 31</h2>
+          </div>
+        </div>
+        <p id="battleIntro" class="panel-copy">The Death Star encounter always happens at month end. The only question is whether the fleet is strong enough to win.</p>
+        <section class="battle-panel">
+          <article class="battle-summary">
+            <div class="battle-summary-header">
+              <div>
+                <p class="battle-summary-label">Battle Readiness</p>
+                <h3 id="battleScore">0%</h3>
+              </div>
+              <div class="battle-score-chip">
+                <span id="battleStatus">Awaiting May 31</span>
+              </div>
+            </div>
+            <div class="battle-progress-shell">
+              <div class="battle-progress-bar">
+                <div id="battleScoreFill" class="battle-progress-fill"></div>
+                <div class="battle-progress-threshold" aria-hidden="true"></div>
+              </div>
+              <p class="tiny-copy">Victory requires 90% Battle Readiness by the final day of May.</p>
+            </div>
+            <div class="battle-outcome-card">
+              <p class="battle-outcome-label">Projected Outcome</p>
+              <h3 id="battleOutcomeTitle">Death Star Destroyed</h3>
+              <p id="battleOutcomeDescription" class="panel-copy">Build the fleet through May to lock in the trench run win.</p>
+            </div>
+          </article>
+
+          <div class="battle-metrics">
+            <article class="battle-metric-card">
+              <div class="battle-metric-header">
+                <p class="battle-metric-label">Fleet XP Progress</p>
+                <p id="battleXpPercent" class="battle-metric-value">0%</p>
+              </div>
+              <div class="battle-metric-bar">
+                <div id="battleXpFill" class="battle-metric-fill"></div>
+              </div>
+              <p class="tiny-copy">70% of the final score comes from the group XP target.</p>
+            </article>
+
+            <article class="battle-metric-card">
+              <div class="battle-metric-header">
+                <p class="battle-metric-label">Rebels At Target</p>
+                <p id="battleTargetPercent" class="battle-metric-value">0%</p>
+              </div>
+              <div class="battle-metric-bar">
+                <div id="battleTargetFill" class="battle-metric-fill"></div>
+              </div>
+              <p class="tiny-copy">20% of the final score comes from how many rebels hit their target level.</p>
+            </article>
+
+            <article class="battle-metric-card">
+              <div class="battle-metric-header">
+                <p class="battle-metric-label">Campaign Unlocks</p>
+                <p id="battleUnlockPercent" class="battle-metric-value">0%</p>
+              </div>
+              <div class="battle-metric-bar">
+                <div id="battleUnlockFill" class="battle-metric-fill"></div>
+              </div>
+              <p class="tiny-copy">10% of the final score comes from planet and ship unlock progress.</p>
+            </article>
+          </div>
+        </section>
+      </section>
+
+      <section class="panel">
+        <div class="panel-header">
+          <div>
             <p class="eyebrow">Flight Path</p>
             <h2>Advance across eight planets on the road to the trench run</h2>
           </div>

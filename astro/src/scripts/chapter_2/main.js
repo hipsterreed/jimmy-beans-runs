@@ -3,6 +3,8 @@ import { createChapterApi } from "../lib/chapterApi.js";
 import { hasFirebaseConfig } from "../lib/firebaseConfig.js";
 import {
   ACTIVITY_TYPES,
+  BATTLE_OUTCOME_TIERS,
+  BATTLE_READINESS_WEIGHTS,
   calculateWorkoutPoints,
   CHAPTER_ID,
   CHAPTER_THEME,
@@ -10,13 +12,14 @@ import {
   DEFAULT_CHARACTER_KEY,
   DEFAULT_PARTICIPANTS,
   DEFAULT_RUNNER_GOAL,
+  FINAL_BATTLE_DATE,
   GOAL_PRESETS,
   LEGACY_PARTICIPANT_ID_MAP,
   levelForPoints,
   nextLevelPoints,
   PLANET_UNLOCKS,
   pointsForLevel,
-  SUPPORT_UNLOCKS,
+  supportUnlocksForCharacter,
 } from "./data.js";
 
 const api = createChapterApi({
@@ -74,6 +77,18 @@ const els = {
   runnerGrid: document.getElementById("runnerGrid"),
   flightPath: document.getElementById("flightPath"),
   shipGrid: document.getElementById("shipGrid"),
+  battleIntro: document.getElementById("battleIntro"),
+  battleScore: document.getElementById("battleScore"),
+  battleStatus: document.getElementById("battleStatus"),
+  battleScoreFill: document.getElementById("battleScoreFill"),
+  battleOutcomeTitle: document.getElementById("battleOutcomeTitle"),
+  battleOutcomeDescription: document.getElementById("battleOutcomeDescription"),
+  battleXpPercent: document.getElementById("battleXpPercent"),
+  battleXpFill: document.getElementById("battleXpFill"),
+  battleTargetPercent: document.getElementById("battleTargetPercent"),
+  battleTargetFill: document.getElementById("battleTargetFill"),
+  battleUnlockPercent: document.getElementById("battleUnlockPercent"),
+  battleUnlockFill: document.getElementById("battleUnlockFill"),
   participantModal: document.getElementById("participantModal"),
   participantModalEyebrow: document.getElementById("participantModalEyebrow"),
   participantModalTitle: document.getElementById("participantModalTitle"),
@@ -130,6 +145,11 @@ function parseDateLabel(isoDate) {
   const [year, month, day] = isoDate.split("-").map(Number);
   const parsed = new Date(year, (month || 1) - 1, day || 1);
   return new Intl.DateTimeFormat("en-US", { month: "short", day: "numeric" }).format(parsed);
+}
+
+function parseIsoDate(isoDate) {
+  const [year, month, day] = String(isoDate || "").split("-").map(Number);
+  return new Date(year || 1970, (month || 1) - 1, day || 1);
 }
 
 function normalizeNameInitials(name) {
@@ -336,6 +356,8 @@ function supportIllustration(key, className = "support-illustration") {
     "force-focus": `<circle cx="40" cy="40" r="18" fill="rgba(125,255,181,.16)" stroke="#7dffb5" stroke-width="2.4"/><circle cx="40" cy="40" r="9" fill="#243246"/><path d="M40 18v8M40 54v8M18 40h8M54 40h8" stroke="#b8cbde" stroke-width="2.4" stroke-linecap="round"/><path d="M27 27 32 32M48 48 53 53M27 53 32 48M48 32 53 27" stroke="#7dffb5" stroke-width="2.2" stroke-linecap="round"/>`,
     "ion-cannon": `<path d="M20 46h22l6-12h8l5 5-3 7h-9l-5 9H20Z" fill="#8fa4b7"/><path d="M29 31h17v8H29Z" fill="#dce7f0"/><path d="M48 34h8l4 4-2 5h-8Z" fill="#5c6f84"/><path d="M61 39h8" stroke="#78dfff" stroke-width="3.2" stroke-linecap="round"/><circle cx="69" cy="39" r="2.4" fill="#b9f3ff"/>`,
     "trench-instincts": `<path d="M40 16 54 24v14c0 11-6 18-14 26-8-8-14-15-14-26V24Z" fill="#d7e2ef"/><path d="M40 21 49 26v11c0 8-3 13-9 20-6-7-9-12-9-20V26Z" fill="#5f6f82"/><path d="M40 25v26" stroke="#fff3ae" stroke-width="2.4" stroke-linecap="round"/><path d="M33 34h14" stroke="#ff8d54" stroke-width="2.2" stroke-linecap="round"/><circle cx="40" cy="58" r="3" fill="#ffd24c"/>`,
+    medpac: `<rect x="24" y="20" width="32" height="40" rx="8" fill="#e2edf8"/><rect x="29" y="26" width="22" height="28" rx="5" fill="#b9cbe0"/><path d="M40 31v18M31 40h18" stroke="#ff6b6b" stroke-width="4" stroke-linecap="round"/><path d="M30 20h20" stroke="#f8fbff" stroke-width="3" stroke-linecap="round" opacity=".7"/>`,
+    "star-map": `<circle cx="40" cy="40" r="18" fill="#21334a"/><circle cx="40" cy="40" r="22" fill="none" stroke="#7be3ff" stroke-width="2.2"/><path d="M27 46 35 33 47 37 54 28" stroke="#ffd24c" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/><circle cx="27" cy="46" r="2.2" fill="#dff8ff"/><circle cx="35" cy="33" r="2.2" fill="#dff8ff"/><circle cx="47" cy="37" r="2.2" fill="#dff8ff"/><circle cx="54" cy="28" r="2.2" fill="#dff8ff"/><path d="M40 17v8M40 55v8M17 40h8M55 40h8" stroke="#6bb6ff" stroke-width="2" stroke-linecap="round"/>`,
   }[key];
 
   if (!markup) return "";
@@ -728,6 +750,59 @@ function totalLevel() {
   return levelForPoints(totalPoints());
 }
 
+function unlockProgressPercent() {
+  const goal = totalGoalPoints();
+  if (goal <= 0) return 0;
+  const thresholdUnit = goal / PLANET_UNLOCKS.length;
+  const points = totalPoints();
+  let unlockedCount = 0;
+  for (let index = 0; index < PLANET_UNLOCKS.length; index += 1) {
+    if (points >= thresholdUnit * (index + 1)) unlockedCount += 1;
+  }
+  return (unlockedCount / PLANET_UNLOCKS.length) * 100;
+}
+
+function targetHitRatePercent() {
+  if (!state.participants.length) return 0;
+  const hitCount = state.participants.filter((participant) => {
+    const goal = Number(participant.goalMiles || 0);
+    if (goal <= 0) return false;
+    return totalPointsForRunner(participant.id) >= goal;
+  }).length;
+  return (hitCount / state.participants.length) * 100;
+}
+
+function battleOutcomeFor(score) {
+  return BATTLE_OUTCOME_TIERS.find((tier) => score >= tier.minScore) || BATTLE_OUTCOME_TIERS[BATTLE_OUTCOME_TIERS.length - 1];
+}
+
+function battleState() {
+  const goal = totalGoalPoints();
+  const points = totalPoints();
+  const xpProgressPercent = goal > 0 ? Math.min((points / goal) * 100, 100) : 0;
+  const targetPercent = targetHitRatePercent();
+  const unlockPercent = unlockProgressPercent();
+  const score = Math.min(
+    (xpProgressPercent * BATTLE_READINESS_WEIGHTS.xp)
+      + (targetPercent * BATTLE_READINESS_WEIGHTS.targetHitRate)
+      + (unlockPercent * BATTLE_READINESS_WEIGHTS.unlockProgress),
+    100,
+  );
+  const battleDate = parseIsoDate(FINAL_BATTLE_DATE);
+  const now = new Date();
+  const isBattleDay = now >= battleDate;
+  const outcome = battleOutcomeFor(score);
+  return {
+    goal,
+    score,
+    xpProgressPercent,
+    targetPercent,
+    unlockPercent,
+    isBattleDay,
+    outcome,
+  };
+}
+
 function setSyncState(message, status) {
   els.syncBanner.textContent = message;
   els.syncBanner.dataset.status = status || "idle";
@@ -766,10 +841,43 @@ function renderTotals() {
   if (goal <= 0) {
     els.progressText.textContent = "Recruit rebels to set the attack target.";
   } else if (remaining > 0) {
-    els.progressText.textContent = `${formatPoints(remaining)} XP until the Death Star trench run is ready.`;
+    els.progressText.textContent = `${formatPoints(remaining)} XP needed to fully prep the fleet before the Battle of Yavin.`;
   } else {
-    els.progressText.textContent = "Quest complete. The rebels are ready to destroy the Death Star.";
+    els.progressText.textContent = "Fleet XP target reached. Hold the line until May 31 to resolve the final battle.";
   }
+}
+
+function renderBattlePanel() {
+  const battle = battleState();
+  const projectedOutcome = battleOutcomeFor(battle.score);
+  const shownOutcome = battle.isBattleDay ? battle.outcome : projectedOutcome;
+
+  els.battleScore.textContent = `${Math.round(battle.score)}%`;
+  els.battleScoreFill.style.width = `${battle.score}%`;
+  els.battleXpPercent.textContent = `${Math.round(battle.xpProgressPercent)}%`;
+  els.battleXpFill.style.width = `${battle.xpProgressPercent}%`;
+  els.battleTargetPercent.textContent = `${Math.round(battle.targetPercent)}%`;
+  els.battleTargetFill.style.width = `${battle.targetPercent}%`;
+  els.battleUnlockPercent.textContent = `${Math.round(battle.unlockPercent)}%`;
+  els.battleUnlockFill.style.width = `${battle.unlockPercent}%`;
+  els.battleOutcomeTitle.textContent = shownOutcome.title;
+  els.battleOutcomeDescription.textContent = shownOutcome.description;
+
+  if (battle.goal <= 0) {
+    els.battleIntro.textContent = "Set rebel target levels first. The final battle score is calculated from group XP, rebels hitting target, and campaign unlocks.";
+    els.battleStatus.textContent = "Roster required";
+    return;
+  }
+
+  if (!battle.isBattleDay) {
+    const delta = Math.max(90 - battle.score, 0);
+    els.battleIntro.textContent = `The Death Star encounter is locked for ${parseDateLabel(FINAL_BATTLE_DATE)}. Build readiness now so the fleet is strong enough when the battle starts.`;
+    els.battleStatus.textContent = delta > 0 ? `${Math.ceil(delta)}% short of victory` : "Victory pace secured";
+    return;
+  }
+
+  els.battleIntro.textContent = "Battle day is live. The outcome below is resolved from the fleet strength you built through May.";
+  els.battleStatus.textContent = shownOutcome.title;
 }
 
 function runnerCardMarkup(runner) {
@@ -793,15 +901,14 @@ function runnerCardMarkup(runner) {
          <img class="avatar-image" src="${avatarUrl}" alt="${runner.name} portrait" />
        </button>`
     : `<div class="avatar">${normalizeNameInitials(runner.name)}</div>`;
-  const supportThresholdUnit = goal > 0 ? goal / SUPPORT_UNLOCKS.length : 0;
-  const supportMarkup = SUPPORT_UNLOCKS.map((item, index) => {
-    const unlockPoints = supportThresholdUnit * (index + 1);
-    const unlocked = points >= unlockPoints;
-    const supportSprite = supportIllustration(item.key, "support-illustration");
+  const supportUnlocks = supportUnlocksForCharacter(runner.characterKey);
+  const supportMarkup = supportUnlocks.map((item) => {
+    const unlocked = level >= item.level;
+    const supportSprite = supportIllustration(item.iconKey, "support-illustration");
 
     return `
       <article class="support-node ${unlocked ? "" : "is-locked"} ${item.type === "weapon" ? "is-weapon" : "is-skill"}">
-        <button type="button" class="support-node-orb" aria-label="${item.title}: ${formatPoints(unlockPoints)} XP">
+        <button type="button" class="support-node-orb" aria-label="${item.title}: Level ${item.level}">
           <span class="support-node-halo"></span>
           <span class="support-icon-shell">
             ${supportSprite}
@@ -809,7 +916,7 @@ function runnerCardMarkup(runner) {
           <span class="support-node-name">${item.title}</span>
         </button>
         <div class="support-node-card">
-          <p class="planet-threshold">${formatPoints(unlockPoints)} XP</p>
+          <p class="planet-threshold">Level ${item.level}</p>
           <p class="planet-ship">${item.type === "weapon" ? "Weapon Unlock" : "Skill Unlock"}</p>
           <h3>${item.title}</h3>
           <p class="planet-description">${item.description}</p>
@@ -1068,6 +1175,7 @@ function syncGoalPresetUi() {
 function render() {
   renderThemeCopy();
   renderTotals();
+  renderBattlePanel();
   renderRunnerGrid();
   renderFlightPath();
   renderShipGrid();
